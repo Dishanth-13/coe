@@ -1,7 +1,8 @@
 """
 VECTA Empirical Benchmark Evaluator.
 Computes exact ground-truth nearest neighbors, Recall@k accuracy,
-fine-grained latency percentiles (p50, p95, p99), memory usage, and throughput QPS.
+fine-grained latency percentiles (p50, p95, p99), serialized index size, estimated index
+memory, and sequential single-query throughput (QPS).
 """
 
 import time
@@ -39,11 +40,25 @@ class BenchmarkEvaluator:
         flat_cfg = IndexConfig(family=IndexFamily.FLAT)
         flat_wrapper = FaissIndexWrapper(flat_cfg, self.dimension, self.metric)
         flat_wrapper.build_and_add(self.database)
-        
-        dists, indices, lat_ms = flat_wrapper.search(self.queries, k=self.k)
+        self._flat_wrapper = flat_wrapper
+
+        dists, indices, _ = flat_wrapper.search(self.queries, k=self.k)
         self.gt_indices = indices
         self.gt_distances = dists
-        self.gt_query_latency_ms = lat_ms / len(self.queries)
+
+        # Mean single-query exact-search latency, measured the same way as evaluate_config()
+        # so that speedup_vs_baseline compares like with like.
+        single_latencies = []
+        for q_idx in range(len(self.queries)):
+            t0 = time.perf_counter()
+            flat_wrapper.search(self.queries[q_idx:q_idx + 1], k=self.k)
+            single_latencies.append((time.perf_counter() - t0) * 1000.0)
+        self.gt_query_latency_ms = float(np.mean(single_latencies)) if single_latencies else 0.0
+
+    def exact_search(self, queries: np.ndarray, k: int) -> Tuple[np.ndarray, np.ndarray]:
+        """Exact brute-force k-NN over this evaluator's database (same metric rules as the GT)."""
+        dists, indices, _ = self._flat_wrapper.search(queries, k=k)
+        return dists, indices
 
     @staticmethod
     def calculate_recall_at_k(retrieved_indices: np.ndarray, ground_truth_indices: np.ndarray, k: int) -> float:
@@ -101,7 +116,7 @@ class BenchmarkEvaluator:
         speedup = self.gt_query_latency_ms / max(1e-4, mean_lat)
         
         return BenchmarkResult(
-            config=config,
+            config=wrapper.config,  # effective configuration actually built by FAISS
             recall_at_k=round(recall, 4),
             latency_p50_ms=round(p50, 3),
             latency_p95_ms=round(p95, 3),
@@ -110,5 +125,8 @@ class BenchmarkEvaluator:
             throughput_qps=round(qps, 1),
             memory_footprint_mb=round(wrapper.estimated_memory_mb, 2),
             index_build_time_s=round(build_time, 3),
-            speedup_vs_baseline=round(speedup, 2)
+            speedup_vs_baseline=round(speedup, 2),
+            requested_config=wrapper.requested_config,
+            config_adjustments=list(wrapper.config_adjustments),
+            index_serialized_mb=float(wrapper.serialized_size_mb)
         )

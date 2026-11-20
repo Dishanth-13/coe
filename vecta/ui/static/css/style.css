@@ -778,3 +778,147 @@ input[type="range"]::-webkit-slider-thumb:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   Loading / Error / Empty States
+   ========================================================================== */
+.status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 24px 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.status-banner[hidden] {
+  display: none;
+}
+
+.status-banner.loading {
+  border-color: rgba(59, 130, 246, 0.35);
+  background-color: var(--accent-blue-soft);
+  color: #dbeafe;
+}
+
+.status-banner.error {
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #fee2e2;
+}
+
+.status-banner-close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background-color: var(--bg-card);
+}
+
+.chart-empty[hidden] {
+  display: none;
+}
+
+.chart-empty.error {
+  color: var(--accent-red);
+}
+
+.empty-state {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 6px 2px;
+}
+
+.empty-state.error {
+  color: var(--accent-red);
+}
+
+.arena-table tr.empty-row td {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.arena-verdict-banner.neutral {
+  background-color: var(--bg-input);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.arena-verdict-banner.neutral .verdict-tag {
+  background-color: var(--text-muted);
+  color: var(--bg-app);
+}
+
+.arena-verdict-banner.warning {
+  background-color: var(--accent-amber-soft);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fef3c7;
+}
+
+.arena-verdict-banner.warning .verdict-tag {
+  background-color: var(--accent-amber);
+  color: #451a03;
+}
+
+.arena-verdict-banner.error {
+  background-color: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fee2e2;
+}
+
+.arena-verdict-banner.error .verdict-tag {
+  background-color: var(--accent-red);
+  color: #450a0a;
+}
+
+.telemetry-item .val.offline {
+  color: var(--accent-red);
+}
+
+.mc-sub.warn {
+  color: var(--accent-amber);
+}
+
+.winner-sla {
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.winner-sla[hidden] {
+  display: none;
+}
+
+.tag-pill.amber {
+  background-color: var(--accent-amber-soft);
+  color: var(--accent-amber);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.leg-dot.green {
+  background-color: var(--accent-green);
+}
+
+.status-banner.warning {
+  border-color: rgba(245, 158, 11, 0.4);
+  background-color: var(--accent-amber-soft);
+  color: #fef3c7;
+}

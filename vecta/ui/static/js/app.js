@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
       expected_qps: 600.0,
       target_k: 10
     },
+    busy: false,
+    hasActiveIndex: false,
     paretoChart: null,
     arenaBarChart: null
   };
@@ -40,10 +42,17 @@ document.addEventListener('DOMContentLoaded', () => {
     runArenaBtn: document.getElementById('runArenaBtn'),
     executeSearchBtn: document.getElementById('executeSearchBtn'),
 
+    // Status banner
+    statusBanner: document.getElementById('statusBanner'),
+    statusBannerText: document.getElementById('statusBannerText'),
+    statusBannerClose: document.getElementById('statusBannerClose'),
+
     // Telemetry & Metrics
+    telemetryEngine: document.getElementById('telemetryEngine'),
     telemetryCpu: document.getElementById('telemetryCpu'),
     telemetryRam: document.getElementById('telemetryRam'),
     mIntrinsicDim: document.getElementById('mIntrinsicDim'),
+    mIntrinsicSub: document.getElementById('mIntrinsicSub'),
     mHopkins: document.getElementById('mHopkins'),
     mNormVar: document.getElementById('mNormVar'),
     mProfTime: document.getElementById('mProfTime'),
@@ -52,13 +61,16 @@ document.addEventListener('DOMContentLoaded', () => {
     candidateCountBadge: document.getElementById('candidateCountBadge'),
     paretoCountBadge: document.getElementById('paretoCountBadge'),
     tuningDurationBadge: document.getElementById('tuningDurationBadge'),
+    paretoEmpty: document.getElementById('paretoEmpty'),
     winnerConfigTitle: document.getElementById('winnerConfigTitle'),
     winnerFamilyTag: document.getElementById('winnerFamilyTag'),
+    winnerSlaStatus: document.getElementById('winnerSlaStatus'),
     winnerRecall: document.getElementById('winnerRecall'),
     winnerRecallCi: document.getElementById('winnerRecallCi'),
     winnerLatency: document.getElementById('winnerLatency'),
     winnerLatencyCi: document.getElementById('winnerLatencyCi'),
     winnerMemory: document.getElementById('winnerMemory'),
+    winnerMemorySub: document.getElementById('winnerMemorySub'),
     winnerBuildTime: document.getElementById('winnerBuildTime'),
     winnerRationaleText: document.getElementById('winnerRationaleText'),
 
@@ -66,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     arenaVerdictBanner: document.getElementById('arenaVerdictBanner'),
     verdictText: document.getElementById('verdictText'),
     arenaTableBody: document.getElementById('arenaTableBody'),
+    arenaEmpty: document.getElementById('arenaEmpty'),
 
     // Search Playground
     qLatencyVal: document.getElementById('qLatencyVal'),
@@ -73,6 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
     qTotalServed: document.getElementById('qTotalServed'),
     neighborsList: document.getElementById('neighborsList')
   };
+
+  const RUN_BTN_HTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Run Optimization';
 
   // Initialize System Telemetry & Event Bindings
   initTelemetry();
@@ -83,6 +98,99 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Polling Telemetry every 5 seconds
   setInterval(initTelemetry, 5000);
+
+  // -------------------------------------------------------------
+  // Helpers
+  // -------------------------------------------------------------
+
+  /** fetch() wrapper: throws an Error carrying the server's `detail` on non-2xx responses. */
+  async function apiFetch(url, options) {
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch (err) {
+      throw new Error(`Cannot reach the Vecta server (${url}): ${err.message}`);
+    }
+    let body = null;
+    try {
+      body = await res.json();
+    } catch (_) {
+      body = null;
+    }
+    if (!res.ok) {
+      let detail = res.statusText;
+      if (body && body.detail !== undefined) {
+        detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail);
+      }
+      throw new Error(`${url} failed (HTTP ${res.status}): ${detail}`);
+    }
+    if (body === null) {
+      throw new Error(`${url} returned an empty or non-JSON response.`);
+    }
+    return body;
+  }
+
+  function showStatus(message, kind) {
+    el.statusBanner.hidden = false;
+    el.statusBanner.className = `status-banner ${kind || ''}`;
+    el.statusBannerText.textContent = message;
+  }
+
+  function clearStatus() {
+    el.statusBanner.hidden = true;
+    el.statusBannerText.textContent = '';
+  }
+
+  function setBusy(busy) {
+    state.busy = busy;
+    el.triggerAutoTuneBtn.disabled = busy;
+    el.runArenaBtn.disabled = busy || !state.hasActiveIndex;
+    el.deployWinnerBtn.disabled = busy || !state.hasActiveIndex;
+    el.executeSearchBtn.disabled = busy || !state.hasActiveIndex;
+    el.presetButtons.forEach(b => { b.disabled = busy; });
+  }
+
+  function fmt(value, digits, suffix) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+    return Number(value).toFixed(digits) + (suffix || '');
+  }
+
+  function setChartOverlay(overlay, message, isError) {
+    if (message) {
+      overlay.hidden = false;
+      overlay.textContent = message;
+      overlay.classList.toggle('error', !!isError);
+    } else {
+      overlay.hidden = true;
+    }
+  }
+
+  function setVerdict(message, kind) {
+    el.arenaVerdictBanner.className = `arena-verdict-banner ${kind || ''}`;
+    el.verdictText.textContent = message;
+  }
+
+  function renderTableMessage(message, isError) {
+    el.arenaTableBody.innerHTML = '';
+    const tr = document.createElement('tr');
+    tr.classList.add('empty-row');
+    const td = document.createElement('td');
+    td.colSpan = 7;
+    td.textContent = message;
+    if (isError) td.style.color = 'var(--accent-red)';
+    tr.appendChild(td);
+    el.arenaTableBody.appendChild(tr);
+  }
+
+  function familyLabel(family) {
+    switch (family) {
+      case 'HNSW': return 'Graph-based index (HNSW)';
+      case 'IVF_FLAT': return 'Inverted file index (IVF-Flat)';
+      case 'IVF_PQ': return 'Inverted file + product quantization (IVF-PQ)';
+      case 'FLAT': return 'Exact brute-force index';
+      default: return family || '—';
+    }
+  }
 
   // -------------------------------------------------------------
   // Event Bindings
@@ -103,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     el.sliderLatency.addEventListener('input', (e) => {
       state.workload.max_latency_ms = parseFloat(e.target.value);
-      el.valLatency.textContent = state.workload.max_latency_ms.toFixed(1) + ' ms';
+      el.valLatency.textContent = state.workload.max_latency_ms.toFixed(2) + ' ms';
     });
     el.sliderMemory.addEventListener('input', (e) => {
       state.workload.memory_budget_mb = parseFloat(e.target.value);
@@ -117,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Preset Buttons
     el.presetButtons.forEach(btn => {
       btn.addEventListener('click', () => {
+        if (state.busy) return;
         el.presetButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         applyPreset(btn.dataset.preset);
@@ -128,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     el.deployWinnerBtn.addEventListener('click', () => runArenaBenchmark());
     el.runArenaBtn.addEventListener('click', () => runArenaBenchmark());
     el.executeSearchBtn.addEventListener('click', () => executeLiveSearch());
+    el.statusBannerClose.addEventListener('click', () => clearStatus());
   }
 
   // -------------------------------------------------------------
@@ -141,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sift_benchmark: { vectors: 15000, dim: 128, recall: 0.95, latency: 1.2, memory: 140, k: 10 }
     };
     const p = presets[presetKey] || presets.rag_semantic_search;
-    
+
     state.workload.num_vectors = p.vectors;
     state.workload.dimension = p.dim;
     state.workload.target_recall = p.recall;
@@ -156,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     el.sliderRecall.value = p.recall;
     el.valRecall.textContent = (p.recall * 100).toFixed(1) + '%';
     el.sliderLatency.value = p.latency;
-    el.valLatency.textContent = p.latency.toFixed(1) + ' ms';
+    el.valLatency.textContent = p.latency.toFixed(2) + ' ms';
     el.sliderMemory.value = p.memory;
     el.valMemory.textContent = p.memory + ' MB';
     el.sliderK.value = p.k;
@@ -170,112 +280,206 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   async function initTelemetry() {
     try {
-      const res = await fetch('/api/system');
-      const data = await res.json();
+      const data = await apiFetch('/api/system');
       if (data.hardware) {
         el.telemetryCpu.textContent = `${data.hardware.logical_cpus} Threads`;
         el.telemetryRam.textContent = `${data.hardware.available_ram_gb} GB`;
       }
+      if (data.engine) {
+        const opts = data.engine.compile_options ? ` ${data.engine.compile_options}` : '';
+        el.telemetryEngine.textContent = `${data.engine.name} ${data.engine.version}${opts}`;
+      }
+      [el.telemetryEngine, el.telemetryCpu, el.telemetryRam].forEach(n => n.classList.remove('offline'));
     } catch (err) {
       console.warn('Telemetry polling error:', err);
+      [el.telemetryEngine, el.telemetryCpu, el.telemetryRam].forEach(n => {
+        n.textContent = 'offline';
+        n.classList.add('offline');
+      });
     }
   }
 
   async function runWorkloadProfileAndTune() {
-    const t0 = performance.now();
+    if (state.busy) return;
+    setBusy(true);
     el.triggerAutoTuneBtn.innerHTML = 'Optimizing...';
-    el.triggerAutoTuneBtn.disabled = true;
+
+    // The server only replaces its dataset (and drops the old index) when /api/profile succeeds.
+    // Until then the previous recommendation, benchmark and index remain valid and untouched.
+    let profileCommitted = false;
+    let warnings = [];
 
     try {
       // 1. Profile Workload
-      const profRes = await fetch('/api/profile', {
+      showStatus('Profiling workload…', 'loading');
+      const t0 = performance.now();
+      const profData = await apiFetch('/api/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state.workload)
       });
-      const profData = await profRes.json();
+      profileCommitted = true;
+      state.hasActiveIndex = false;  // the server invalidated the previous index
+      setBusy(true);
       const wp = profData.workload_profile;
+      updateProfileUI(wp, performance.now() - t0);
+      warnings = profData.warnings || [];
 
-      // Update Profile Metrics
-      el.mIntrinsicDim.textContent = wp.intrinsic_dimension;
-      el.mHopkins.textContent = wp.clustering_tendency_hopkins;
-      el.mNormVar.textContent = wp.norm_variance;
-      el.mProfTime.textContent = (performance.now() - t0).toFixed(1) + ' ms';
-
-      // 2. Run Auto-Tuning
-      const tuneRes = await fetch('/api/tune', { method: 'POST' });
-      const tuneData = await tuneRes.json();
-
+      // 2. Run Auto-Tuning (also deploys the winner as the active index)
+      showStatus('Running auto-tuning optimizer…', 'loading');
+      setTuningPending();
+      const tuneData = await apiFetch('/api/tune', { method: 'POST' });
       updateTuningUI(tuneData);
+      state.hasActiveIndex = true;
 
       // 3. Run Benchmark automatically
-      await runArenaBenchmark();
-
+      showStatus('Benchmarking deployed configuration against FAISS defaults…', 'loading');
+      await benchmarkInner();
+      if (warnings.length) {
+        // Keep server warnings (e.g. dataset size capped) visible after the run completes
+        showStatus(`Warning: ${warnings.join(' ')}`, 'warning');
+      } else {
+        clearStatus();
+      }
     } catch (err) {
       console.error('Tuning error:', err);
+      const prefix = warnings.length ? `Warning: ${warnings.join(' ')} ` : '';
+      if (!profileCommitted) {
+        // Profile was rejected: the server kept its previous dataset and index, so keep the UI as is
+        const msg = /[.!?]$/.test(err.message) ? err.message : `${err.message}.`;
+        showStatus(`${msg} The previous workload, recommendation and index are unchanged.`, 'error');
+      } else {
+        showStatus(prefix + err.message, 'error');
+        if (!state.hasActiveIndex) {
+          setTuningError(err.message);
+        }
+      }
     } finally {
-      el.triggerAutoTuneBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Run Optimization';
-      el.triggerAutoTuneBtn.disabled = false;
+      el.triggerAutoTuneBtn.innerHTML = RUN_BTN_HTML;
+      setBusy(false);
     }
+  }
+
+  function updateProfileUI(wp, elapsedMs) {
+    el.mIntrinsicDim.textContent = fmt(wp.intrinsic_dimension, 2);
+    el.mIntrinsicSub.textContent = wp.intrinsic_dimension > 0
+      ? `Ambient / intrinsic: ${(wp.dimension / wp.intrinsic_dimension).toFixed(1)}x`
+      : 'Two-NN estimate';
+    el.mHopkins.textContent = fmt(wp.clustering_tendency_hopkins, 3);
+    el.mNormVar.textContent = fmt(wp.norm_variance, 4);
+    el.mProfTime.textContent = fmt(elapsedMs, 1, ' ms');
+  }
+
+  function setTuningPending() {
+    el.tuningDurationBadge.textContent = 'Tuning…';
+    setChartOverlay(el.paretoEmpty, 'Evaluating candidate configurations…');
+  }
+
+  function setTuningError(message) {
+    el.tuningDurationBadge.textContent = 'Tuning failed';
+    el.winnerSlaStatus.hidden = true;
+    el.winnerConfigTitle.textContent = 'No recommendation';
+    el.winnerFamilyTag.textContent = '—';
+    [el.winnerRecall, el.winnerLatency, el.winnerMemory, el.winnerBuildTime].forEach(n => { n.textContent = '—'; });
+    [el.winnerRecallCi, el.winnerLatencyCi, el.winnerMemorySub].forEach(n => { n.textContent = ''; });
+    el.winnerRationaleText.textContent = message;
+    setChartOverlay(el.paretoEmpty, 'No candidates to display.', true);
+    setVerdict('Benchmark not run: no active configuration.', 'error');
+    renderTableMessage('No benchmark results.', false);
+    setChartOverlay(el.arenaEmpty, 'No benchmark results.');
   }
 
   function updateTuningUI(tuneData) {
     el.candidateCountBadge.textContent = `${tuneData.total_candidates_evaluated} Configurations`;
     el.paretoCountBadge.textContent = `${tuneData.pareto_optimal_count} Pareto Optimal`;
-    el.tuningDurationBadge.textContent = `Tuned in ${tuneData.tuning_duration_ms} ms`;
+    el.tuningDurationBadge.textContent = `Tuned in ${fmt(tuneData.tuning_duration_ms, 0)} ms`;
 
     const winner = tuneData.recommended_config;
     const pred = tuneData.recommended_prediction;
 
     el.winnerConfigTitle.textContent = winner.id_string;
-    el.winnerFamilyTag.textContent = winner.family === 'HNSW' 
-      ? 'High-Exploration Graph-based Index' 
-      : 'Voronoi Inverted File Cluster Index';
+    el.winnerFamilyTag.textContent = familyLabel(winner.family);
 
-    el.winnerRecall.textContent = (pred.recall * 100).toFixed(1) + '%';
-    el.winnerRecallCi.textContent = `± ${(pred.recall_ci_half_width * 100).toFixed(1)}% CI`;
+    el.winnerSlaStatus.hidden = false;
+    if (tuneData.sla_satisfied) {
+      el.winnerSlaStatus.className = 'tag-pill winner-sla green';
+      el.winnerSlaStatus.textContent = `Predicted to meet all targets (${tuneData.feasible_candidate_count} feasible candidates)`;
+    } else {
+      const missed = (tuneData.violated_constraints || []).join(', ') || 'one or more targets';
+      el.winnerSlaStatus.className = 'tag-pill winner-sla amber';
+      el.winnerSlaStatus.textContent = `No config meets all targets — best-effort fallback (misses: ${missed})`;
+    }
 
-    el.winnerLatency.textContent = pred.latency_p95_ms.toFixed(2) + ' ms';
-    el.winnerLatencyCi.textContent = `± ${pred.latency_ci_half_width.toFixed(2)} ms CI`;
+    el.winnerRecall.textContent = fmt(pred.predicted_recall * 100, 1, '%');
+    el.winnerRecallCi.textContent = `± ${fmt(pred.recall_uncertainty * 100, 1)}% (tree std)`;
 
-    el.winnerMemory.textContent = pred.memory_mb.toFixed(1) + ' MB';
-    el.winnerBuildTime.textContent = pred.build_time_s.toFixed(2) + ' s';
+    el.winnerLatency.textContent = fmt(pred.predicted_latency_p95, 2, ' ms');
+    el.winnerLatencyCi.textContent = `± ${fmt(pred.latency_uncertainty_p95, 2)} ms (tree std)`;
 
-    el.winnerRationaleText.textContent = tuneData.selection_rationale;
+    el.winnerMemory.textContent = fmt(pred.predicted_memory_mb, 1, ' MB');
+    // Use the budget the server actually tuned against (sliders may have moved since)
+    const memRow = (tuneData.constraint_report || []).find(r => r.constraint === 'memory_mb');
+    const budget = memRow ? memRow.target : state.workload.memory_budget_mb;
+    const withinBudget = memRow ? memRow.met : pred.predicted_memory_mb <= budget;
+    el.winnerMemorySub.textContent = withinBudget
+      ? `Within ${budget.toFixed(0)} MB budget (predicted)`
+      : `Exceeds ${budget.toFixed(0)} MB budget (predicted)`;
+    el.winnerMemorySub.classList.toggle('warn', !withinBudget);
+
+    el.winnerBuildTime.textContent = fmt(pred.predicted_build_time_s, 2, ' s');
+
+    let rationale = tuneData.rationale;
+    if (tuneData.config_adjustments && tuneData.config_adjustments.length) {
+      const deployed = tuneData.deployed_config ? tuneData.deployed_config.id_string : '';
+      rationale += ` Deployed as ${deployed} after FAISS compatibility adjustments: ${tuneData.config_adjustments.join('; ')}.`;
+    }
+    el.winnerRationaleText.textContent = rationale;
 
     // Render Pareto Frontier Scatter Plot
-    renderParetoChart(tuneData.all_candidates, winner.id_string);
+    renderParetoChart(tuneData.all_points || [], winner.id_string);
   }
 
   // -------------------------------------------------------------
   // Empirical Arena Benchmarking
   // -------------------------------------------------------------
   async function runArenaBenchmark() {
-    el.runArenaBtn.disabled = true;
-    el.runArenaBtn.textContent = 'Benchmarking...';
-    el.deployWinnerBtn.disabled = true;
-    el.deployWinnerBtn.textContent = 'Benchmarking Active Index...';
-
+    if (state.busy) return;
+    setBusy(true);
+    showStatus('Benchmarking deployed configuration against FAISS defaults…', 'loading');
     try {
-      const res = await fetch('/api/benchmark', { method: 'POST' });
-      const data = await res.json();
-
-      // Update Verdict
-      el.verdictText.textContent = data.comparison_summary;
-
-      // Update Table
-      renderArenaTable(data.results);
-
-      // Update Bar Chart
-      renderArenaBarChart(data.results);
-
+      await benchmarkInner();
+      clearStatus();
     } catch (err) {
       console.error('Benchmark error:', err);
+      showStatus(err.message, 'error');
     } finally {
-      el.runArenaBtn.disabled = false;
+      setBusy(false);
+    }
+  }
+
+  /** Runs /api/benchmark and renders results. Throws on failure (after rendering an error state). */
+  async function benchmarkInner() {
+    el.runArenaBtn.textContent = 'Benchmarking...';
+    el.deployWinnerBtn.textContent = 'Benchmarking Active Index...';
+    setVerdict('Benchmark running…', 'neutral');
+    renderTableMessage('Benchmark running…', false);
+    setChartOverlay(el.arenaEmpty, 'Benchmark running…');
+
+    try {
+      const data = await apiFetch('/api/benchmark', { method: 'POST' });
+
+      const allMet = data.sla_check ? data.sla_check.all_met : null;
+      setVerdict(data.summary_verdict, allMet === false ? 'warning' : 'neutral');
+      renderArenaTable(data.results);
+      renderArenaBarChart(data.results);
+    } catch (err) {
+      setVerdict(`Benchmark failed: ${err.message}`, 'error');
+      renderTableMessage('Benchmark failed — no results.', true);
+      setChartOverlay(el.arenaEmpty, 'Benchmark failed.', true);
+      throw err;
+    } finally {
       el.runArenaBtn.textContent = 'Re-run Benchmark';
-      el.deployWinnerBtn.disabled = false;
-      el.deployWinnerBtn.textContent = 'Deploy to Engine & Run Benchmark';
+      el.deployWinnerBtn.textContent = 'Benchmark Deployed Configuration';
     }
   }
 
@@ -284,34 +488,46 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.innerHTML = '';
 
     const items = [
-      { key: 'ground_truth_flat', label: 'Exact Brute-Force (Flat L2)', data: results.ground_truth_flat, isWinner: false },
+      { key: 'ground_truth_flat', label: 'Exact Brute-Force (Flat)', data: results.ground_truth_flat, isWinner: false },
       { key: 'faiss_default_ivf', label: 'FAISS Default IVF (nlist=100, nprobe=1)', data: results.faiss_default_ivf, isWinner: false },
       { key: 'faiss_default_hnsw', label: 'FAISS Default HNSW (M=32, efS=16)', data: results.faiss_default_hnsw, isWinner: false },
       { key: 'vecta_auto_tuned', label: `VECTA Auto-Tuned (${results.vecta_auto_tuned.config.id_string})`, data: results.vecta_auto_tuned, isWinner: true }
     ];
 
     items.forEach(item => {
+      if (!item.data) return;
       const tr = document.createElement('tr');
       if (item.isWinner) tr.classList.add('winner-row');
-      
-      const rec = (item.data.recall_at_k * 100).toFixed(1) + '%';
-      const p95 = (item.data.latency_p95_ms || 0.1).toFixed(2) + ' ms';
-      const p99 = (item.data.latency_p99_ms || 0.15).toFixed(2) + ' ms';
-      const qps = (item.data.throughput_qps || 1000).toLocaleString();
-      const mem = item.data.memory_footprint_mb.toFixed(1) + ' MB';
-      const bld = (item.data.index_build_time_s !== undefined) ? item.data.index_build_time_s.toFixed(2) + ' s' : '< 0.01 s';
 
-      const recColor = item.data.recall_at_k > 0.9 ? '#10b981' : (item.data.recall_at_k > 0.5 ? '#f59e0b' : '#ef4444');
+      const d = item.data;
+      const rec = fmt(d.recall_at_k * 100, 1, '%');
+      const p95 = fmt(d.latency_p95_ms, 3, ' ms');
+      const p99 = fmt(d.latency_p99_ms, 3, ' ms');
+      const qps = (d.throughput_qps !== undefined && d.throughput_qps !== null)
+        ? Math.round(d.throughput_qps).toLocaleString() : '—';
+      const mem = fmt(d.memory_footprint_mb, 1, ' MB');
+      const bld = fmt(d.index_build_time_s, 3, ' s');
 
-      tr.innerHTML = `
-        <td>${item.label}</td>
-        <td><span style="color: ${recColor}; font-weight: 600;">${rec}</span></td>
-        <td>${p95}</td>
-        <td>${p99}</td>
-        <td>${qps}</td>
-        <td>${mem}</td>
-        <td>${bld}</td>
-      `;
+      const recColor = d.recall_at_k > 0.9 ? '#10b981' : (d.recall_at_k > 0.5 ? '#f59e0b' : '#ef4444');
+
+      const cells = [item.label, rec, p95, p99, qps, mem, bld];
+      cells.forEach((text, i) => {
+        const td = document.createElement('td');
+        if (i === 5) {
+          // Estimated, not measured: show the measured serialized size alongside on hover
+          td.title = `Estimated index memory (not measured RAM). Measured serialized index size: ${fmt(d.index_serialized_mb, 2, ' MB')}`;
+        }
+        if (i === 1) {
+          const span = document.createElement('span');
+          span.style.color = recColor;
+          span.style.fontWeight = '600';
+          span.textContent = text;
+          td.appendChild(span);
+        } else {
+          td.textContent = text;
+        }
+        tr.appendChild(td);
+      });
       tbody.appendChild(tr);
     });
   }
@@ -320,44 +536,63 @@ document.addEventListener('DOMContentLoaded', () => {
   // Live Query Testing
   // -------------------------------------------------------------
   async function executeLiveSearch() {
-    el.executeSearchBtn.disabled = true;
+    if (state.busy) return;
+    setBusy(true);
     el.executeSearchBtn.textContent = 'Executing Query...';
 
     try {
-      const res = await fetch('/api/search', {
+      const data = await apiFetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ k: state.workload.target_k, use_random_query: true })
       });
-      const data = await res.json();
 
-      el.qLatencyVal.textContent = data.query_latency_ms.toFixed(2) + ' ms';
-      el.qGtMatchVal.textContent = `${data.exact_matches_in_top_k} / ${state.workload.target_k} (${data.accuracy_pct}%)`;
+      el.qLatencyVal.textContent = fmt(data.query_latency_ms, 3, ' ms');
+      if (data.exact_matches_in_top_k === null || data.exact_matches_in_top_k === undefined) {
+        el.qGtMatchVal.textContent = 'n/a';
+      } else {
+        el.qGtMatchVal.textContent = `${data.exact_matches_in_top_k} / ${data.k !== undefined ? data.k : state.workload.target_k} (${data.accuracy_pct}%)`;
+      }
       el.qTotalServed.textContent = data.total_queries_served.toLocaleString();
 
       // Render Neighbors
       el.neighborsList.innerHTML = '';
       const dists = data.distances[0];
       const idxs = data.indices[0];
+      const scoreLabel = data.metric === 'L2' ? 'L2² dist' : (data.metric === 'COSINE' ? 'Cosine sim' : 'Inner product');
 
-      idxs.slice(0, 8).forEach((id, i) => {
+      const shown = idxs.slice(0, 8).filter(id => id >= 0);
+      if (shown.length === 0) {
+        const empty = document.createElement('div');
+        empty.classList.add('empty-state');
+        empty.textContent = 'The index returned no neighbors for this query.';
+        el.neighborsList.appendChild(empty);
+      }
+      shown.forEach((id, i) => {
         const row = document.createElement('div');
         row.classList.add('neighbor-row');
-        const dist = dists[i].toFixed(4);
-        const sim = Math.max(0, 1.0 - dists[i] / 2.0).toFixed(3);
-        row.innerHTML = `
-          <span class="neighbor-id">Vector #${id}</span>
-          <span class="neighbor-dist">Dist: ${dist}</span>
-          <span class="neighbor-sim">Cosine Sim: ${sim}</span>
-        `;
+        const idSpan = document.createElement('span');
+        idSpan.className = 'neighbor-id';
+        idSpan.textContent = `Vector #${id}`;
+        const distSpan = document.createElement('span');
+        distSpan.className = 'neighbor-dist';
+        distSpan.textContent = `${scoreLabel}: ${dists[i].toFixed(4)}`;
+        row.appendChild(idSpan);
+        row.appendChild(distSpan);
         el.neighborsList.appendChild(row);
       });
 
     } catch (err) {
       console.error('Search error:', err);
+      el.neighborsList.innerHTML = '';
+      const msg = document.createElement('div');
+      msg.className = 'empty-state error';
+      msg.textContent = err.message;
+      el.neighborsList.appendChild(msg);
+      showStatus(err.message, 'error');
     } finally {
-      el.executeSearchBtn.disabled = false;
       el.executeSearchBtn.textContent = 'Execute Test Query';
+      setBusy(false);
     }
   }
 
@@ -365,9 +600,24 @@ document.addEventListener('DOMContentLoaded', () => {
   // Chart.js: Pareto Frontier Scatter Plot
   // -------------------------------------------------------------
   function renderParetoChart(points, winnerId) {
+    if (state.paretoChart) {
+      state.paretoChart.destroy();
+      state.paretoChart = null;
+    }
+    if (!points || points.length === 0) {
+      setChartOverlay(el.paretoEmpty, 'The optimizer returned no candidate configurations.');
+      return;
+    }
+    if (typeof Chart === 'undefined') {
+      setChartOverlay(el.paretoEmpty, 'Chart library failed to load (no network access to cdn.jsdelivr.net?).', true);
+      return;
+    }
+    setChartOverlay(el.paretoEmpty, null);
+
     const ctx = document.getElementById('paretoChart').getContext('2d');
 
     const infeasiblePts = [];
+    const feasiblePts = [];
     const paretoPts = [];
     let winnerPt = null;
 
@@ -377,6 +627,8 @@ document.addEventListener('DOMContentLoaded', () => {
         winnerPt = pt;
       } else if (p.is_pareto) {
         paretoPts.push(pt);
+      } else if (p.is_feasible) {
+        feasiblePts.push(pt);
       } else {
         infeasiblePts.push(pt);
       }
@@ -384,10 +636,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const datasets = [
       {
-        label: 'Sub-optimal / Exceeds SLA',
+        label: 'Predicted to violate a target',
         data: infeasiblePts,
         backgroundColor: 'rgba(100, 116, 139, 0.4)',
         borderColor: 'rgba(100, 116, 139, 0.7)',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      },
+      {
+        label: 'Predicted feasible',
+        data: feasiblePts,
+        backgroundColor: 'rgba(16, 185, 129, 0.55)',
+        borderColor: '#10b981',
         pointRadius: 4,
         pointHoverRadius: 6
       },
@@ -415,10 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    if (state.paretoChart) {
-      state.paretoChart.destroy();
-    }
-
     state.paretoChart = new Chart(ctx, {
       type: 'scatter',
       data: { datasets },
@@ -428,23 +684,23 @@ document.addEventListener('DOMContentLoaded', () => {
         animation: { duration: 400 },
         scales: {
           x: {
-            title: { 
-              display: true, 
-              text: 'Query Latency p95 (ms)', 
-              color: '#94a3b8', 
-              font: { family: 'Inter', size: 11, weight: 500 } 
+            title: {
+              display: true,
+              text: 'Predicted Query Latency p95 (ms)',
+              color: '#94a3b8',
+              font: { family: 'Inter', size: 11, weight: 500 }
             },
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
           },
           y: {
-            title: { 
-              display: true, 
-              text: 'Recall (%)', 
-              color: '#94a3b8', 
-              font: { family: 'Inter', size: 11, weight: 500 } 
+            title: {
+              display: true,
+              text: 'Predicted Recall (%)',
+              color: '#94a3b8',
+              font: { family: 'Inter', size: 11, weight: 500 }
             },
-            min: 10,
+            min: 0,
             max: 102,
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
@@ -466,7 +722,8 @@ document.addEventListener('DOMContentLoaded', () => {
                   `Index: ${raw.id}`,
                   `Recall: ${(raw.recall * 100).toFixed(1)}%`,
                   `Latency p95: ${raw.latency_p95.toFixed(2)} ms`,
-                  `Memory: ${raw.memory_mb.toFixed(1)} MB`
+                  `Predicted memory: ${raw.memory_mb.toFixed(1)} MB`,
+                  raw.is_feasible ? 'Predicted to meet all targets' : 'Predicted to violate a target'
                 ];
               }
             }
@@ -480,11 +737,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Chart.js: Arena Comparative Bar Chart
   // -------------------------------------------------------------
   function renderArenaBarChart(results) {
+    if (state.arenaBarChart) {
+      state.arenaBarChart.destroy();
+      state.arenaBarChart = null;
+    }
+    if (typeof Chart === 'undefined') {
+      setChartOverlay(el.arenaEmpty, 'Chart library failed to load (no network access to cdn.jsdelivr.net?).', true);
+      return;
+    }
+    setChartOverlay(el.arenaEmpty, null);
+
     const ctx = document.getElementById('arenaBarChart').getContext('2d');
 
     const labels = ['Exact Flat', 'FAISS Default IVF', 'FAISS Default HNSW', 'VECTA Auto-Tuned'];
     const recallData = [
-      100.0,
+      results.ground_truth_flat.recall_at_k * 100,
       results.faiss_default_ivf.recall_at_k * 100,
       results.faiss_default_hnsw.recall_at_k * 100,
       results.vecta_auto_tuned.recall_at_k * 100
@@ -495,10 +762,6 @@ document.addEventListener('DOMContentLoaded', () => {
       results.faiss_default_hnsw.latency_p95_ms,
       results.vecta_auto_tuned.latency_p95_ms
     ];
-
-    if (state.arenaBarChart) {
-      state.arenaBarChart.destroy();
-    }
 
     state.arenaBarChart = new Chart(ctx, {
       type: 'bar',

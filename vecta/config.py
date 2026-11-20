@@ -106,9 +106,14 @@ class PerformancePrediction:
     latency_uncertainty_p95: float = 0.15
     memory_uncertainty: float = 1.2
     
-    # Feasibility indicator
+    # Feasibility indicator (strict: every target must be met by the prediction)
     is_feasible: bool = True
     constraint_violation_penalty: float = 0.0
+
+    # Per-constraint outcome of the prediction against the workload targets
+    meets_recall_target: bool = True
+    meets_latency_target: bool = True
+    meets_memory_budget: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -124,6 +129,7 @@ class BenchmarkResult:
     latency_p99_ms: float
     latency_mean_ms: float
     throughput_qps: float
+    # ESTIMATED in-memory index size: max(serialized index size, analytical model). Not measured RSS.
     memory_footprint_mb: float
     index_build_time_s: float
     tuning_time_ms: float = 0.0
@@ -133,10 +139,51 @@ class BenchmarkResult:
     recall_delta_vs_baseline: float = 0.0
     memory_reduction_pct: float = 0.0
 
+    # `config` is the configuration FAISS actually built. If FAISS compatibility rules forced
+    # changes, the originally requested configuration and the reasons are reported here.
+    requested_config: Optional[IndexConfig] = None
+    config_adjustments: List[str] = field(default_factory=list)
+
+    # MEASURED size of the serialized FAISS index (faiss.write_index output), in MB
+    index_serialized_mb: float = 0.0
+
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d['config'] = self.config.to_dict()
+        d['requested_config'] = self.requested_config.to_dict() if self.requested_config is not None else None
         return d
+
+
+# ---------------------------------------------------------------------------
+# FAISS compatibility rules shared by the engine wrapper and the optimizer grid
+# ---------------------------------------------------------------------------
+
+# Minimum number of training vectors per IVF centroid used when choosing nlist
+MIN_TRAINING_VECTORS_PER_CENTROID = 8
+
+
+def max_ivf_nlist(num_vectors: int) -> int:
+    """Largest IVF nlist used for a dataset of `num_vectors` vectors."""
+    return max(1, int(num_vectors) // MIN_TRAINING_VECTORS_PER_CENTROID)
+
+
+def largest_valid_pq_m(dimension: int, requested_m: int) -> int:
+    """
+    Largest number of PQ sub-quantizers <= `requested_m` that divides `dimension`
+    (FAISS ProductQuantizer requires dimension % M == 0).
+    """
+    m = max(1, min(int(requested_m), int(dimension)))
+    while m > 1 and dimension % m != 0:
+        m -= 1
+    return m
+
+
+def max_pq_nbits(num_vectors: int, requested_nbits: int) -> int:
+    """PQ codebooks have 2**nbits centroids, so k-means needs at least 2**nbits training vectors."""
+    nbits = int(requested_nbits)
+    while nbits > 1 and (1 << nbits) > num_vectors:
+        nbits -= 1
+    return max(1, nbits)
 
 
 # Search Space Grid for Auto-Tuning Optimization

@@ -87,7 +87,7 @@ def main():
     prof_table.add_row("Latency SLA (p95)", f"<= {workload.max_latency_ms:.1f} ms")
     prof_table.add_row("Memory Budget", f"<= {workload.memory_budget_mb:.1f} MB")
     prof_table.add_row("Intrinsic Dimension (Two-NN)", f"{workload.intrinsic_dimension:.2f} (Compression ratio: {workload.dimension/workload.intrinsic_dimension:.1f}x)")
-    prof_table.add_row("Clustering Tendency (Hopkins)", f"{workload.clustering_tendency_hopkins:.3f} (High spatial clustering)")
+    prof_table.add_row("Clustering Tendency (Hopkins)", f"{workload.clustering_tendency_hopkins:.3f}")
     console.print(prof_table)
 
     # 4. Auto-Tuner & ML Cost Model
@@ -101,11 +101,18 @@ def main():
     rec_pred = tune_result["recommended_prediction"]
     
     console.print(f"  Explored [cyan]{tune_result['total_candidates_evaluated']}[/cyan] configurations in [bold green]{tune_result['tuning_duration_ms']:.1f} ms[/bold green].")
-    console.print(f"  Identified [cyan]{tune_result['pareto_optimal_count']}[/cyan] Pareto-optimal solutions.")
+    console.print(f"  Identified [cyan]{tune_result['pareto_optimal_count']}[/cyan] Pareto-optimal solutions; "
+                  f"[cyan]{tune_result['feasible_candidate_count']}[/cyan] predicted to meet every target.")
+    if tune_result["sla_satisfied"]:
+        panel_title = "[bold cyan]Configuration Selected (predicted to meet all targets):[/bold cyan]"
+        panel_border = "green"
+    else:
+        panel_title = "[bold yellow]No configuration meets all targets - closest candidate (best-effort):[/bold yellow]"
+        panel_border = "yellow"
     console.print(Panel(
-        f"[bold cyan]Optimal Configuration Selected:[/bold cyan] [bold white]{rec_cfg['id_string']}[/bold white]\n"
+        f"{panel_title} [bold white]{rec_cfg['id_string']}[/bold white]\n"
         f"[dim]{tune_result['rationale']}[/dim]",
-        border_style="green",
+        border_style=panel_border,
         box=box.ROUNDED
     ))
 
@@ -124,7 +131,7 @@ def main():
             nprobe=rec_cfg.get("nprobe", 8),
             m_pq=rec_cfg.get("m_pq", 16)
         )
-        arena_report = BaselineComparer.run_head_to_head_arena(evaluator, winner_index_config)
+        arena_report = BaselineComparer.run_head_to_head_arena(evaluator, winner_index_config, workload=workload)
 
     # Results Table
     results = arena_report["results"]
@@ -134,19 +141,19 @@ def main():
     table.add_column("p95 Latency", justify="center")
     table.add_column("p99 Latency", justify="center")
     table.add_column("Throughput (QPS)", justify="center")
-    table.add_column("RAM (MB)", justify="center")
+    table.add_column("Est. Index Mem (MB)", justify="center")
     table.add_column("Build Time (s)", justify="center")
 
     # Brute Force Flat
     gt = results["ground_truth_flat"]
     table.add_row(
         "Exact Brute-Force (Flat L2)",
-        "[green]100.0%[/green]",
+        f"[green]{gt['recall_at_k'] * 100:.1f}%[/green]",
         f"{gt['latency_p95_ms']:.2f} ms",
-        "-",
+        f"{gt['latency_p99_ms']:.2f} ms",
         f"{gt['throughput_qps']:.0f}",
         f"{gt['memory_footprint_mb']:.1f}",
-        "< 0.01"
+        f"{gt['index_build_time_s']:.2f}"
     )
 
     # FAISS Default IVF
@@ -173,25 +180,43 @@ def main():
         f"{hnsw['index_build_time_s']:.2f}"
     )
 
-    # Vecta Auto-Tuned
+    # Vecta Auto-Tuned (colored by whether each benchmark metric meets the workload target;
+    # recall/latency are measured, index memory is an estimate)
     vec = results["vecta_auto_tuned"]
+    sla = arena_report["sla_check"]
+
+    def mark(ok: bool, text: str) -> str:
+        return f"[bold green]{text}[/bold green]" if ok else f"[bold yellow]{text}[/bold yellow]"
+
     table.add_row(
-        f"[bold green]VECTA Auto-Tuned ({winner_index_config.id_string})[/bold green]",
-        f"[bold green]{vec['recall_at_k'] * 100:.1f}%[/bold green]",
-        f"[bold green]{vec['latency_p95_ms']:.2f} ms[/bold green]",
-        f"[bold green]{vec['latency_p99_ms']:.2f} ms[/bold green]",
-        f"[bold green]{vec['throughput_qps']:.0f}[/bold green]",
-        f"[bold green]{vec['memory_footprint_mb']:.1f}[/bold green]",
+        f"[bold]VECTA Auto-Tuned ({vec['config']['id_string']})[/bold]",
+        mark(sla["recall"]["met"], f"{vec['recall_at_k'] * 100:.1f}%"),
+        mark(sla["latency_p95_ms"]["met"], f"{vec['latency_p95_ms']:.2f} ms"),
+        f"{vec['latency_p99_ms']:.2f} ms",
+        f"{vec['throughput_qps']:.0f}",
+        mark(sla["memory_mb"]["met"], f"{vec['memory_footprint_mb']:.1f}"),
         f"{vec['index_build_time_s']:.2f}"
     )
 
     console.print(table)
+    console.print("[dim]Est. Index Mem = max(measured serialized index size, analytical model); not measured process RAM.[/dim]")
 
-    # Verdict
-    console.print(f"\n[bold green]Verdict:[/bold green] {arena_report['summary_verdict']}")
-    console.print(f"  • Latency Speedup: [bold cyan]{arena_report['speedup_factor']:.2f}x[/bold cyan]")
-    console.print(f"  • Recall Accuracy Delta: [bold cyan]{'+' if arena_report['recall_gain_abs_pct'] >= 0 else ''}{arena_report['recall_gain_abs_pct']:.1f}%[/bold cyan]")
-    console.print(f"  • Memory Savings: [bold cyan]{arena_report['memory_reduction_pct']:.1f}%[/bold cyan]")
+    if vec.get("config_adjustments"):
+        console.print(f"[yellow]Note:[/yellow] requested {vec['requested_config']['id_string']} was built as "
+                      f"{vec['config']['id_string']}: {'; '.join(vec['config_adjustments'])}")
+
+    # Verdict (a latency factor below 1 is reported as a slowdown)
+    verdict_style = "bold green" if sla["all_met"] else "bold yellow"
+    console.print(f"\n[{verdict_style}]Verdict:[/{verdict_style}] {arena_report['summary_verdict']}")
+    ref_name = arena_report["reference_default"]
+    console.print(f"  • p95 Latency vs {ref_name}: [bold cyan]{arena_report['latency_comparison']}[/bold cyan]")
+    console.print(f"  • Recall vs {ref_name}: [bold cyan]{'+' if arena_report['recall_gain_abs_pct'] >= 0 else ''}{arena_report['recall_gain_abs_pct']:.1f} points[/bold cyan]")
+    mem_pct = arena_report['memory_reduction_pct']
+    console.print(f"  • Estimated index memory vs {ref_name}: [bold cyan]{abs(mem_pct):.1f}% {'lower' if mem_pct >= 0 else 'higher'}[/bold cyan]")
+    for key, label in [("recall", "Recall target"), ("latency_p95_ms", "Latency target"), ("memory_mb", "Memory budget (estimated index memory)")]:
+        c = sla[key]
+        status = "[green]met[/green]" if c["met"] else "[bold red]MISSED[/bold red]"
+        console.print(f"  • {label} ({c['comparison']} {c['target']}): {c['basis']} {c['value']} -> {status}")
 
     # 6. Dynamic Adaptation Simulation
     console.print("\n[bold yellow][Step 5/5] Demonstrating Real-Time Closed-Loop Runtime Adaptation...[/bold yellow]")
@@ -206,8 +231,17 @@ def main():
     for q_i in range(10):
         manager.query(queries[q_i:q_i+1], k=k)
     adapt_status = adapter.evaluate_and_adapt()
-    p95_val = adapt_status.get('p95_latency_ms', 0.12)
-    console.print(f"  Telemetry sample: p95 = {p95_val:.2f} ms (SLA: {workload.max_latency_ms:.1f} ms) | Status: [bold green]SLA Protected (Optimal Bounds)[/bold green]")
+    if adapt_status.get("status") == "insufficient_data":
+        console.print("  Telemetry: not enough queries observed to evaluate the latency SLA; no adaptation performed.")
+    else:
+        p95_val = adapt_status["p95_latency_ms"]
+        within = p95_val <= workload.max_latency_ms
+        status = "[bold green]within SLA[/bold green]" if within else "[bold red]SLA BREACHED[/bold red]"
+        console.print(f"  Telemetry sample (10 queries): p95 = {p95_val:.3f} ms (SLA: {workload.max_latency_ms:.1f} ms) | Status: {status}")
+        if adapt_status["adapted"]:
+            console.print(f"  Adapter action: {adapt_status['action']}")
+        else:
+            console.print("  Adapter action: none (p95 within the adapter's hold band).")
 
     console.print("\n[bold cyan][OK] Vecta End-to-End Pipeline Execution Complete.[/bold cyan]\n")
 

@@ -1,0 +1,7 @@
+# Development / test dependencies (not needed to run the dashboard, API or demo)
+-r requirements.txt
+
+# Required by fastapi.testclient.TestClient in tests/test_api.py and the other API tests.
+# Note: Starlette >= 1.x prefers the `httpx2` package and emits a deprecation warning when it
+# falls back to `httpx`; `httpx` is kept because older Starlette releases support only `httpx`.
+httpx>=0.24.0

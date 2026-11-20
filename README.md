@@ -63,6 +63,16 @@ Benchmarked on $N=15,000$ dense 128-dimensional clustered vectors ($k=10$):
 
 ## 4. Quickstart: Running for the Panel Presentation
 
+### Installation
+Runtime dependencies (dashboard, API and CLI demo):
+```powershell
+python -m pip install -r requirements.txt
+```
+Development dependencies (everything above plus the test-only packages needed by the full test suite):
+```powershell
+python -m pip install -r requirements-dev.txt
+```
+
 ### Option 1: Visual Research Dashboard (Web UI)
 Launch the interactive glassmorphism mission control dashboard:
 ```powershell
@@ -83,8 +93,13 @@ python demo.py
 ```
 
 ### Option 3: Run the Automated Test Suite
+Core library tests (runtime dependencies only):
 ```powershell
 python tests/test_all.py
+```
+Full suite, including API, dashboard-contract and regression tests (requires `requirements-dev.txt`):
+```powershell
+python -m unittest discover -s tests
 ```
 
 ---

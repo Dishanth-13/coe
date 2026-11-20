@@ -38,17 +38,17 @@
       <div class="telemetry-item">
         <span class="status-indicator"></span>
         <span class="label">ENGINE:</span>
-        <span class="val highlight" id="telemetryEngine">FAISS AVX2</span>
+        <span class="val highlight" id="telemetryEngine">&mdash;</span>
       </div>
       <div class="telemetry-divider"></div>
       <div class="telemetry-item">
         <span class="label">CPU CORES:</span>
-        <span class="val" id="telemetryCpu">24 Threads</span>
+        <span class="val" id="telemetryCpu">&mdash;</span>
       </div>
       <div class="telemetry-divider"></div>
       <div class="telemetry-item">
         <span class="label">FREE MEMORY:</span>
-        <span class="val" id="telemetryRam">8.9 GB</span>
+        <span class="val" id="telemetryRam">&mdash;</span>
       </div>
     </div>
 
@@ -59,6 +59,12 @@
       </button>
     </div>
   </header>
+
+  <!-- Global status / error banner (populated by app.js) -->
+  <div class="status-banner" id="statusBanner" role="status" aria-live="polite" hidden>
+    <span class="status-banner-text" id="statusBannerText"></span>
+    <button class="status-banner-close" id="statusBannerClose" type="button" aria-label="Dismiss">&times;</button>
+  </div>
 
   <!-- Main Dashboard Container -->
   <main class="dashboard-container">
@@ -147,23 +153,23 @@
           <div class="diagnostics-grid">
             <div class="diag-card">
               <span class="d-label">Intrinsic Dimensionality</span>
-              <span class="d-val" id="mIntrinsicDim">51.2</span>
-              <span class="d-sub">Manifold compression: 2.5x</span>
+              <span class="d-val" id="mIntrinsicDim">&mdash;</span>
+              <span class="d-sub" id="mIntrinsicSub">Two-NN estimate</span>
             </div>
             <div class="diag-card">
               <span class="d-label">Clustering Tendency</span>
-              <span class="d-val" id="mHopkins">0.652</span>
+              <span class="d-val" id="mHopkins">&mdash;</span>
               <span class="d-sub">Hopkins Index score</span>
             </div>
             <div class="diag-card">
               <span class="d-label">Vector Norm Variance</span>
-              <span class="d-val" id="mNormVar">0.082</span>
-              <span class="d-sub">Dense distribution</span>
+              <span class="d-val" id="mNormVar">&mdash;</span>
+              <span class="d-sub">Variance of vector L2 norms</span>
             </div>
             <div class="diag-card">
               <span class="d-label">Profiling Overhead</span>
-              <span class="d-val highlight" id="mProfTime">3.2 ms</span>
-              <span class="d-sub">Sub-linear sampling</span>
+              <span class="d-val highlight" id="mProfTime">&mdash;</span>
+              <span class="d-sub">Profile request round trip</span>
             </div>
           </div>
         </div>
@@ -181,20 +187,22 @@
             <p class="section-desc">Scatter plot of candidate index configurations across latency vs. recall trade-offs.</p>
           </div>
           <div class="header-tags">
-            <span class="tag-pill" id="candidateCountBadge">312 Configurations</span>
-            <span class="tag-pill green" id="paretoCountBadge">50 Pareto Optimal</span>
+            <span class="tag-pill" id="candidateCountBadge">&mdash; Configurations</span>
+            <span class="tag-pill green" id="paretoCountBadge">&mdash; Pareto Optimal</span>
           </div>
         </div>
 
         <div class="chart-container">
           <canvas id="paretoChart"></canvas>
+          <div class="chart-empty" id="paretoEmpty">Run optimization to plot candidate configurations.</div>
         </div>
 
         <div class="pareto-legend-strip">
-          <span class="leg-item"><span class="leg-dot gray"></span> Sub-optimal / Exceeds SLA</span>
-          <span class="leg-item"><span class="leg-dot blue"></span> Pareto Optimal Candidate</span>
-          <span class="leg-item"><span class="leg-dot amber"></span> Recommended Configuration</span>
-          <span class="leg-note">X-Axis: Query Latency (p95) | Y-Axis: Recall</span>
+          <span class="leg-item"><span class="leg-dot gray"></span> Predicted to violate a target</span>
+          <span class="leg-item"><span class="leg-dot green"></span> Predicted feasible</span>
+          <span class="leg-item"><span class="leg-dot blue"></span> Pareto optimal</span>
+          <span class="leg-item"><span class="leg-dot amber"></span> Recommended</span>
+          <span class="leg-note">Cost-model predictions | X: p95 latency | Y: recall</span>
         </div>
       </div>
 
@@ -203,51 +211,49 @@
         <div class="card-header">
           <div>
             <h3>Recommended Index Architecture</h3>
-            <p class="section-desc">Selected configuration meeting all SLA constraints.</p>
+            <p class="section-desc">Configuration chosen by the optimizer from cost-model predictions.</p>
           </div>
-          <span class="tag-pill blue" id="tuningDurationBadge">Tuned in 11.2 ms</span>
+          <span class="tag-pill blue" id="tuningDurationBadge">Not tuned yet</span>
         </div>
 
         <div class="winner-panel">
           <div class="winner-title-box">
-            <div class="winner-title" id="winnerConfigTitle">HNSW(M=48, efC=32, efS=128)</div>
-            <div class="winner-subtitle" id="winnerFamilyTag">High-Exploration Graph-based Index</div>
+            <div class="winner-title" id="winnerConfigTitle">No recommendation yet</div>
+            <div class="winner-subtitle" id="winnerFamilyTag">Run optimization to select an index</div>
+            <span class="tag-pill winner-sla" id="winnerSlaStatus" hidden></span>
           </div>
 
           <div class="winner-metrics-grid">
             <div class="metric-card">
               <span class="mc-label">Predicted Recall</span>
-              <span class="mc-val green" id="winnerRecall">94.6%</span>
-              <span class="mc-sub" id="winnerRecallCi">&plusmn; 1.2% CI</span>
+              <span class="mc-val green" id="winnerRecall">&mdash;</span>
+              <span class="mc-sub" id="winnerRecallCi">&nbsp;</span>
             </div>
             <div class="metric-card">
               <span class="mc-label">Query Latency (p95)</span>
-              <span class="mc-val blue" id="winnerLatency">0.22 ms</span>
-              <span class="mc-sub" id="winnerLatencyCi">&plusmn; 0.04 ms CI</span>
+              <span class="mc-val blue" id="winnerLatency">&mdash;</span>
+              <span class="mc-sub" id="winnerLatencyCi">&nbsp;</span>
             </div>
             <div class="metric-card">
-              <span class="mc-label">Memory Footprint</span>
-              <span class="mc-val" id="winnerMemory">13.1 MB</span>
-              <span class="mc-sub">Within memory limit</span>
+              <span class="mc-label">Predicted Memory</span>
+              <span class="mc-val" id="winnerMemory">&mdash;</span>
+              <span class="mc-sub" id="winnerMemorySub">&nbsp;</span>
             </div>
             <div class="metric-card">
               <span class="mc-label">Est. Build Time</span>
-              <span class="mc-val" id="winnerBuildTime">0.08 s</span>
-              <span class="mc-sub">Rapid indexing</span>
+              <span class="mc-val" id="winnerBuildTime">&mdash;</span>
+              <span class="mc-sub">Predicted</span>
             </div>
           </div>
 
           <div class="rationale-box">
             <div class="rationale-label">Selection Rationale</div>
-            <p id="winnerRationaleText">
-              Selected HNSW(M=48, efC=32, efS=128) achieving predicted 94.6% Recall at 0.22 ms p95 latency.
-              It strictly satisfies the latency constraint and conforms to the configured RAM budget.
-            </p>
+            <p id="winnerRationaleText">Run optimization to get a recommendation.</p>
           </div>
 
           <div class="winner-action-bar">
             <button class="btn btn-secondary full-width" id="deployWinnerBtn">
-              Deploy to Engine &amp; Run Benchmark
+              Benchmark Deployed Configuration
             </button>
           </div>
         </div>
@@ -269,9 +275,9 @@
           </button>
         </div>
 
-        <div class="arena-verdict-banner" id="arenaVerdictBanner">
+        <div class="arena-verdict-banner neutral" id="arenaVerdictBanner">
           <span class="verdict-tag">RESULT</span>
-          <span id="verdictText">Vecta Auto-Tuned index achieves +37.6% higher recall than FAISS Default HNSW with 0.22 ms p95 latency!</span>
+          <span id="verdictText">No benchmark has been run yet.</span>
         </div>
 
         <!-- Comparative Metrics Table -->
@@ -284,12 +290,12 @@
                 <th>p95 Latency</th>
                 <th>p99 Latency</th>
                 <th>Throughput (QPS)</th>
-                <th>RAM Footprint</th>
+                <th title="Estimated index memory: the larger of the measured serialized index size and an analytical model. Not measured process RAM.">Est. Index Memory</th>
                 <th>Build Time</th>
               </tr>
             </thead>
             <tbody id="arenaTableBody">
-              <!-- Populated dynamically -->
+              <tr class="empty-row"><td colspan="7">No benchmark results yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -297,6 +303,7 @@
         <!-- Chart comparison -->
         <div class="arena-chart-wrapper">
           <canvas id="arenaBarChart"></canvas>
+          <div class="chart-empty" id="arenaEmpty">Benchmark results will be charted here.</div>
         </div>
       </div>
 
@@ -320,15 +327,15 @@
           <div class="query-telemetry-hud" id="queryTelemetryHud">
             <div class="q-stat">
               <span class="qs-label">Query Latency</span>
-              <span class="qs-val green" id="qLatencyVal">0.18 ms</span>
+              <span class="qs-val green" id="qLatencyVal">&mdash;</span>
             </div>
             <div class="q-stat">
               <span class="qs-label">Ground Truth Match</span>
-              <span class="qs-val" id="qGtMatchVal">10 / 10 (100%)</span>
+              <span class="qs-val" id="qGtMatchVal">&mdash;</span>
             </div>
             <div class="q-stat">
               <span class="qs-label">Total Queries</span>
-              <span class="qs-val" id="qTotalServed">124</span>
+              <span class="qs-val" id="qTotalServed">&mdash;</span>
             </div>
           </div>
 
@@ -336,7 +343,7 @@
           <div class="neighbors-container">
             <div class="neighbors-header">Retrieved Nearest Neighbors:</div>
             <div class="neighbors-list" id="neighborsList">
-              <!-- Filled dynamically -->
+              <div class="empty-state">No query executed yet.</div>
             </div>
           </div>
         </div>

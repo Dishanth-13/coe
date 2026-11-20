@@ -171,12 +171,12 @@ class SurrogateCostModel:
         
         pred_bld = max(0.01, float(self.reg_build_time.predict(feat)[0]) * self.build_time_calibration_factor)
 
-        # Check constraint feasibility against workload SLAs
-        is_feasible = (
-            pred_rec >= (workload.target_recall - 0.02) and
-            pred_p95 <= (workload.max_latency_ms * 1.05) and
-            pred_mem <= (workload.memory_budget_mb * 1.05)
-        )
+        # Check constraint feasibility against workload SLAs (strict: no tolerance bands, so a
+        # configuration reported as feasible is predicted to meet every stated target)
+        meets_recall = pred_rec >= workload.target_recall
+        meets_latency = pred_p95 <= workload.max_latency_ms
+        meets_memory = pred_mem <= workload.memory_budget_mb
+        is_feasible = meets_recall and meets_latency and meets_memory
         
         # Penalty function for non-feasible configurations
         penalty = 0.0
@@ -187,18 +187,23 @@ class SurrogateCostModel:
         if pred_mem > workload.memory_budget_mb:
             penalty += ((pred_mem - workload.memory_budget_mb) / workload.memory_budget_mb) * 5.0
 
+        # Values are kept at full precision: feasibility, violation scores and rankings must all be
+        # computed from the same numbers. Rounding is a presentation concern (UI / rationale text).
         return PerformancePrediction(
-            predicted_recall=round(pred_rec, 4),
-            predicted_latency_p50=round(pred_p50, 3),
-            predicted_latency_p95=round(pred_p95, 3),
-            predicted_latency_p99=round(pred_p99, 3),
-            predicted_memory_mb=round(pred_mem, 2),
-            predicted_build_time_s=round(pred_bld, 3),
-            recall_uncertainty=round(rec_std, 4),
-            latency_uncertainty_p95=round(lat_std, 3),
-            memory_uncertainty=round(mem_std, 2),
+            predicted_recall=float(pred_rec),
+            predicted_latency_p50=float(pred_p50),
+            predicted_latency_p95=float(pred_p95),
+            predicted_latency_p99=float(pred_p99),
+            predicted_memory_mb=float(pred_mem),
+            predicted_build_time_s=float(pred_bld),
+            recall_uncertainty=float(rec_std),
+            latency_uncertainty_p95=float(lat_std),
+            memory_uncertainty=float(mem_std),
             is_feasible=is_feasible,
-            constraint_violation_penalty=round(penalty, 3)
+            constraint_violation_penalty=float(penalty),
+            meets_recall_target=meets_recall,
+            meets_latency_target=meets_latency,
+            meets_memory_budget=meets_memory
         )
 
     def predict_batch(self, workload: WorkloadProfile, configs: List[IndexConfig]) -> List[PerformancePrediction]:
