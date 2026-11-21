@@ -47,6 +47,23 @@ class BenchmarkDatasetGenerator:
         return database.astype(np.float32), queries.astype(np.float32)
 
     @staticmethod
+    def generate_isotropic_gaussian(
+        num_vectors: int = 20000,
+        dimension: int = 128,
+        num_queries: int = 100,
+        random_seed: int = 42
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Generate structureless, un-normalized isotropic Gaussian vectors (no clusters, intrinsic
+        dimension close to the ambient dimension). A deliberately hard case for ANN indexes.
+        Queries are drawn from the same distribution.
+        """
+        rng = np.random.RandomState(random_seed)
+        database = rng.randn(num_vectors, dimension).astype(np.float32)
+        queries = rng.randn(num_queries, dimension).astype(np.float32)
+        return database, queries
+
+    @staticmethod
     def generate_semantic_embeddings(
         num_vectors: int = 20000,
         dimension: int = 128,

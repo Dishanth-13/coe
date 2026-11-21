@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     busy: false,
     hasActiveIndex: false,
+    deploymentId: null,          // server deployment this page's results describe
+    staleDeploymentNotified: false,
     paretoChart: null,
     arenaBarChart: null
   };
@@ -65,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     winnerConfigTitle: document.getElementById('winnerConfigTitle'),
     winnerFamilyTag: document.getElementById('winnerFamilyTag'),
     winnerSlaStatus: document.getElementById('winnerSlaStatus'),
+    recommendationDesc: document.getElementById('recommendationDesc'),
     winnerRecall: document.getElementById('winnerRecall'),
     winnerRecallCi: document.getElementById('winnerRecallCi'),
     winnerLatency: document.getElementById('winnerLatency'),
@@ -279,8 +282,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Telemetry & Profiling
   // -------------------------------------------------------------
   async function initTelemetry() {
+    // Snapshot what this page believes is deployed; ignore polls that overlap our own tuning run
+    const knownDeployment = state.deploymentId;
+    const busyAtStart = state.busy;
     try {
       const data = await apiFetch('/api/system');
+      if (!busyAtStart && !state.busy && knownDeployment !== null && knownDeployment === state.deploymentId) {
+        checkDeployment(data.active_index);
+      }
       if (data.hardware) {
         el.telemetryCpu.textContent = `${data.hardware.logical_cpus} Threads`;
         el.telemetryRam.textContent = `${data.hardware.available_ram_gb} GB`;
@@ -297,6 +306,22 @@ document.addEventListener('DOMContentLoaded', () => {
         n.classList.add('offline');
       });
     }
+  }
+
+  /**
+   * The server keeps ONE shared deployment. If another session (another tab, or a direct API call)
+   * re-tunes or re-profiles, the recommendation and results shown here no longer describe the
+   * serving index: say so, and disable actions that would silently use the other deployment.
+   */
+  function checkDeployment(activeIndex) {
+    const liveId = activeIndex ? activeIndex.deployment_id : null;
+    if (liveId === state.deploymentId || state.staleDeploymentNotified) return;
+    state.staleDeploymentNotified = true;
+    state.hasActiveIndex = false;
+    setBusy(false);
+    const now = activeIndex ? `it now serves ${activeIndex.config.id_string}` : 'no index is deployed now';
+    showStatus(`Another session changed the server's deployment (${now}). The recommendation and benchmark ` +
+               'results on this page are out of date. Click Run Optimization to refresh.', 'warning');
   }
 
   async function runWorkloadProfileAndTune() {
@@ -331,6 +356,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const tuneData = await apiFetch('/api/tune', { method: 'POST' });
       updateTuningUI(tuneData);
       state.hasActiveIndex = true;
+      state.deploymentId = tuneData.deployment_id !== undefined ? tuneData.deployment_id : null;
+      state.staleDeploymentNotified = false;
 
       // 3. Run Benchmark automatically
       showStatus('Benchmarking deployed configuration against FAISS defaults…', 'loading');
@@ -400,30 +427,48 @@ document.addEventListener('DOMContentLoaded', () => {
     el.winnerConfigTitle.textContent = winner.id_string;
     el.winnerFamilyTag.textContent = familyLabel(winner.family);
 
+    // When the shortlist was benchmarked, the decision rests on MEASURED values; predictions stay visible
+    const measured = tuneData.selection_basis === 'measured' ? tuneData.recommended_measured : null;
+    const basis = measured ? 'Measured' : 'Predicted';
+    if (el.recommendationDesc) {
+      el.recommendationDesc.textContent = measured
+        ? `Shortlisted from ${tuneData.total_candidates_evaluated} cost-model predictions; chosen from ${tuneData.benchmarked_count} real FAISS benchmarks on this dataset.`
+        : 'Configuration chosen by the optimizer from cost-model predictions (not benchmarked).';
+    }
+
     el.winnerSlaStatus.hidden = false;
     if (tuneData.sla_satisfied) {
       el.winnerSlaStatus.className = 'tag-pill winner-sla green';
-      el.winnerSlaStatus.textContent = `Predicted to meet all targets (${tuneData.feasible_candidate_count} feasible candidates)`;
+      el.winnerSlaStatus.textContent = measured
+        ? `Measured: meets all targets (${tuneData.feasible_candidate_count} of ${tuneData.benchmarked_count} benchmarked do)`
+        : `Predicted to meet all targets (${tuneData.feasible_candidate_count} feasible candidates)`;
     } else {
       const missed = (tuneData.violated_constraints || []).join(', ') || 'one or more targets';
       el.winnerSlaStatus.className = 'tag-pill winner-sla amber';
-      el.winnerSlaStatus.textContent = `No config meets all targets — best-effort fallback (misses: ${missed})`;
+      el.winnerSlaStatus.textContent = `${basis}: no config meets all targets — best-effort choice (misses: ${missed})`;
     }
 
     el.winnerRecall.textContent = fmt(pred.predicted_recall * 100, 1, '%');
-    el.winnerRecallCi.textContent = `± ${fmt(pred.recall_uncertainty * 100, 1)}% (tree std)`;
-
     el.winnerLatency.textContent = fmt(pred.predicted_latency_p95, 2, ' ms');
-    el.winnerLatencyCi.textContent = `± ${fmt(pred.latency_uncertainty_p95, 2)} ms (tree std)`;
+    if (measured) {
+      el.winnerRecallCi.textContent = `Measured: ${fmt(measured.recall_at_k * 100, 1, '%')}`;
+      el.winnerLatencyCi.textContent = `Measured: ${fmt(measured.latency_p95_ms, 3, ' ms')}`;
+    } else if (pred.recall_uncertainty !== null && pred.recall_uncertainty !== undefined) {
+      el.winnerRecallCi.textContent = `± ${fmt(pred.recall_uncertainty * 100, 1)}% (tree std)`;
+      el.winnerLatencyCi.textContent = `± ${fmt(pred.latency_uncertainty_p95, 2)} ms (tree std)`;
+    } else {
+      el.winnerRecallCi.textContent = 'Not benchmarked';
+      el.winnerLatencyCi.textContent = 'Not benchmarked';
+    }
 
     el.winnerMemory.textContent = fmt(pred.predicted_memory_mb, 1, ' MB');
     // Use the budget the server actually tuned against (sliders may have moved since)
     const memRow = (tuneData.constraint_report || []).find(r => r.constraint === 'memory_mb');
     const budget = memRow ? memRow.target : state.workload.memory_budget_mb;
     const withinBudget = memRow ? memRow.met : pred.predicted_memory_mb <= budget;
-    el.winnerMemorySub.textContent = withinBudget
-      ? `Within ${budget.toFixed(0)} MB budget (predicted)`
-      : `Exceeds ${budget.toFixed(0)} MB budget (predicted)`;
+    el.winnerMemorySub.textContent = measured
+      ? `Measured index ${fmt(measured.serialized_index_mb, 1, ' MB')} ${withinBudget ? 'within' : 'exceeds'} ${budget.toFixed(0)} MB budget`
+      : (withinBudget ? `Within ${budget.toFixed(0)} MB budget (predicted)` : `Exceeds ${budget.toFixed(0)} MB budget (predicted)`);
     el.winnerMemorySub.classList.toggle('warn', !withinBudget);
 
     el.winnerBuildTime.textContent = fmt(pred.predicted_build_time_s, 2, ' s');
@@ -724,7 +769,9 @@ document.addEventListener('DOMContentLoaded', () => {
                   `Latency p95: ${raw.latency_p95.toFixed(2)} ms`,
                   `Predicted memory: ${raw.memory_mb.toFixed(1)} MB`,
                   raw.is_feasible ? 'Predicted to meet all targets' : 'Predicted to violate a target'
-                ];
+                ].concat(raw.measured_recall !== null && raw.measured_recall !== undefined
+                  ? [`Measured: recall ${(raw.measured_recall * 100).toFixed(1)}%, p95 ${raw.measured_latency_p95.toFixed(3)} ms`]
+                  : []);
               }
             }
           }

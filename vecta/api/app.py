@@ -31,7 +31,7 @@ from vecta.config import (
 )
 from vecta.profiler import WorkloadProfiler, HardwareProfiler
 from vecta.cost_model import SurrogateCostModel
-from vecta.tuner import AutoTuningOptimizer, RuntimeAdapter
+from vecta.tuner import AutoTuningOptimizer, RuntimeAdapter, ShortlistTuner
 from vecta.engine import FaissIndexWrapper, DynamicIndexManager
 from vecta.benchmark import BenchmarkDatasetGenerator, BenchmarkEvaluator, BaselineComparer
 
@@ -52,8 +52,12 @@ app.add_middleware(
 # Global State Container for fast in-memory serving & playground
 class AppState:
     def __init__(self):
+        # Original synthetic-trained model and prediction-only optimizer (kept for comparison/fallback)
         self.cost_model = SurrogateCostModel()
-        self.optimizer = AutoTuningOptimizer(self.cost_model)
+        self.synthetic_optimizer = AutoTuningOptimizer(self.cost_model)
+        # Recommendation path: measured-model predictions -> shortlist -> real FAISS benchmark -> select.
+        # The measured model is trained lazily (and cached) on the first tune.
+        self.optimizer = ShortlistTuner(self.synthetic_optimizer)
         self.current_database: Optional[np.ndarray] = None
         self.current_queries: Optional[np.ndarray] = None
         self.current_evaluator: Optional[BenchmarkEvaluator] = None
@@ -64,6 +68,9 @@ class AppState:
         # Operation lock: serializes requests that build or use the dataset / active index
         # (profile, tune, benchmark, search). It can be held for seconds.
         self.lock = threading.RLock()
+        # Incremented every time a new serving index is published. Clients compare it with the value
+        # their tune returned to detect that another session replaced the deployment (shared state).
+        self.deployment_id: int = 0
         # Snapshot lock: held only for the instant shared references are swapped or read, so
         # lightweight readers (e.g. /api/system) never observe a half-published state and never
         # wait behind long operations. Lock order is always lock -> snapshot_lock.
@@ -188,7 +195,7 @@ async def startup_event():
     )
     
     # Initial Auto-tune
-    tune_res = state.optimizer.tune(state.current_workload)
+    tune_res = state.optimizer.tune(state.current_workload, state.current_evaluator)
     winner_cfg = _config_from_dict(tune_res["recommended_config"])
 
     # Active Dynamic Manager (built fully, then published atomically)
@@ -196,7 +203,11 @@ async def startup_event():
     wrapper = FaissIndexWrapper(winner_cfg, d, MetricType.L2)
     wrapper.build_and_add(db)
     manager.set_active_index(wrapper)
-    _publish(last_tuning_result=tune_res, active_config=winner_cfg, dynamic_manager=manager)
+    tune_res["deployed_config"] = wrapper.config.to_dict()
+    tune_res["config_adjustments"] = list(wrapper.config_adjustments)
+    tune_res["deployment_id"] = state.deployment_id + 1
+    _publish(last_tuning_result=tune_res, active_config=winner_cfg, dynamic_manager=manager,
+             deployment_id=tune_res["deployment_id"])
 
 
 @app.get("/api/system")
@@ -209,6 +220,7 @@ def get_system_telemetry():
     # since /api/profile and /api/tune may swap it concurrently.
     with state.snapshot_lock:
         manager = state.dynamic_manager
+        deployment_id = state.deployment_id
 
     active_info = None
     wrapper = manager.active_wrapper if manager is not None else None
@@ -219,7 +231,8 @@ def get_system_telemetry():
             "config": wrapper.config.to_dict(),
             "estimated_memory_mb": wrapper.estimated_memory_mb,
             "serialized_index_mb": round(wrapper.serialized_size_mb, 3),
-            "queries_served": manager.total_queries_served
+            "queries_served": manager.total_queries_served,
+            "deployment_id": deployment_id
         }
 
     try:
@@ -322,7 +335,12 @@ def profile_workload(req: WorkloadRequest):
 
 @app.post("/api/tune")
 def run_auto_tuning(req: Optional[WorkloadRequest] = None):
-    """Run surrogate model prediction, compute Pareto frontier, and select optimal configuration."""
+    """
+    Predict all candidates (measured-data cost model, synthetic fallback), shortlist the most promising,
+    benchmark the shortlist on the current dataset and recommend from MEASURED results. The response
+    separates predicted values (recommended_prediction, shortlist[].predicted) from measured ones
+    (recommended_measured, shortlist[].measured).
+    """
     with state.lock:
         if req is not None:
             profile_workload(req)
@@ -334,7 +352,7 @@ def run_auto_tuning(req: Optional[WorkloadRequest] = None):
         # Tune and rebuild locally; nothing shared changes unless every step succeeds, so a failed
         # rebuild can never leave active_config describing a different index than the one serving.
         try:
-            tune_res = state.optimizer.tune(wp)
+            tune_res = state.optimizer.tune(wp, state.current_evaluator)
             winner_cfg = _config_from_dict(tune_res["recommended_config"])
 
             wrapper = FaissIndexWrapper(winner_cfg, wp.dimension, wp.metric)
@@ -354,9 +372,11 @@ def run_auto_tuning(req: Optional[WorkloadRequest] = None):
         # Report exactly what FAISS built (identical to the recommendation unless adjustments were needed)
         tune_res["deployed_config"] = wrapper.config.to_dict()
         tune_res["config_adjustments"] = list(wrapper.config_adjustments)
+        tune_res["deployment_id"] = state.deployment_id + 1
 
         # Recommendation, config and serving index are published together, never separately
-        _publish(active_config=winner_cfg, dynamic_manager=manager, last_tuning_result=tune_res)
+        _publish(active_config=winner_cfg, dynamic_manager=manager, last_tuning_result=tune_res,
+                 deployment_id=tune_res["deployment_id"])
         return tune_res
 
 

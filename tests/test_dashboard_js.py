@@ -63,6 +63,45 @@ class TestDashboardBehaviour(unittest.TestCase):
         self.assertTrue(s["benchmarkDisabled"])
         self.assertFalse(s["runDisabled"])
 
+    def test_measured_selection_shows_predicted_and_measured_values(self):
+        s = self.run_scenario("measured_selection")
+        self.assertEqual(s["winnerRecall"], "95.0%")              # predicted value stays the headline
+        self.assertEqual(s["recallSub"], "Measured: 98.0%")         # measured value shown separately
+        self.assertEqual(s["latencySub"], "Measured: 0.341 ms")
+        self.assertIn("Measured index 13.0 MB within 128 MB budget", s["memorySub"])
+        self.assertTrue(s["slaText"].startswith("Measured: meets all targets"))
+        self.assertIn("8 real FAISS benchmarks", s["recommendationDesc"])
+
+    def test_prediction_only_result_is_labelled_not_benchmarked(self):
+        s = self.run_scenario("prediction_only")
+        self.assertEqual(s["recallSub"], "Not benchmarked")       # no fake "± 0.0%" from null uncertainty
+        self.assertEqual(s["latencySub"], "Not benchmarked")
+        self.assertIn("not benchmarked", s["recommendationDesc"])
+        self.assertTrue(s["slaText"].startswith("Predicted to meet all targets"))
+
+    def test_unchanged_deployment_raises_no_alarm(self):
+        s = self.run_scenario("deployment_unchanged")
+        self.assertTrue(s["bannerHidden"])
+        self.assertFalse(s["searchDisabled"])
+        self.assertFalse(s["benchmarkDisabled"])
+
+    def test_deployment_replaced_by_another_session_is_flagged(self):
+        s = self.run_scenario("deployment_replaced")
+        self.assertFalse(s["bannerHidden"])
+        self.assertIn("warning", s["bannerClass"].split())
+        self.assertIn("Another session changed the server's deployment", s["bannerText"])
+        self.assertIn("it now serves Flat-Exact", s["bannerText"])
+        self.assertIn("out of date", s["bannerText"])
+        # Actions that would silently use the other session's index are disabled until re-run
+        self.assertTrue(s["searchDisabled"])
+        self.assertTrue(s["benchmarkDisabled"])
+        self.assertFalse(s["runDisabled"])
+
+    def test_deployment_removed_by_another_session_is_flagged(self):
+        s = self.run_scenario("deployment_none")
+        self.assertIn("no index is deployed now", s["bannerText"])
+        self.assertTrue(s["searchDisabled"])
+
     def test_memory_label_uses_server_budget_not_slider(self):
         # Slider default is 128 MB; the server tuned against 50 MB and predicts 60 MB
         s = self.run_scenario("memory_label")

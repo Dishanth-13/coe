@@ -26,7 +26,7 @@ from vecta.config import (
 )
 from vecta.profiler import WorkloadProfiler, HardwareProfiler
 from vecta.cost_model import SurrogateCostModel
-from vecta.tuner import AutoTuningOptimizer, RuntimeAdapter
+from vecta.tuner import AutoTuningOptimizer, RuntimeAdapter, ShortlistTuner
 from vecta.engine import FaissIndexWrapper, DynamicIndexManager
 from vecta.benchmark import BenchmarkDatasetGenerator, BenchmarkEvaluator, BaselineComparer
 
@@ -91,23 +91,39 @@ def main():
     console.print(prof_table)
 
     # 4. Auto-Tuner & ML Cost Model
-    console.print("\n[bold yellow][Step 3/5] Executing Auto-Tuning Optimization (ML Cost Model)...[/bold yellow]")
-    optimizer = AutoTuningOptimizer()
-    
-    with console.status("[bold green]Evaluating candidate lattice & identifying Pareto frontier...", spinner="dots"):
-        tune_result = optimizer.tune(workload)
+    console.print("\n[bold yellow][Step 3/5] Auto-Tuning: predict -> shortlist -> benchmark -> select...[/bold yellow]")
+    tuner = ShortlistTuner(AutoTuningOptimizer())
+
+    with console.status("[bold green]Predicting candidates, benchmarking the shortlist on this dataset...", spinner="dots"):
+        evaluator = BenchmarkEvaluator(database, queries, metric=MetricType.L2, k=k)
+        tune_result = tuner.tune(workload, evaluator)
 
     rec_cfg = tune_result["recommended_config"]
     rec_pred = tune_result["recommended_prediction"]
-    
-    console.print(f"  Explored [cyan]{tune_result['total_candidates_evaluated']}[/cyan] configurations in [bold green]{tune_result['tuning_duration_ms']:.1f} ms[/bold green].")
-    console.print(f"  Identified [cyan]{tune_result['pareto_optimal_count']}[/cyan] Pareto-optimal solutions; "
-                  f"[cyan]{tune_result['feasible_candidate_count']}[/cyan] predicted to meet every target.")
+    basis = "measured" if tune_result["selection_basis"] == "measured" else "predicted"
+
+    console.print(f"  Predicted [cyan]{tune_result['total_candidates_evaluated']}[/cyan] configurations with the "
+                  f"[cyan]{tune_result['prediction_model'].replace('_', ' ')}[/cyan]; benchmarked "
+                  f"[cyan]{tune_result['benchmarked_count']}[/cyan] in [bold green]{tune_result['tuning_duration_ms']:.0f} ms[/bold green] total.")
+    if tune_result.get("fallback_reason"):
+        console.print(f"  [yellow]Note:[/yellow] {tune_result['fallback_reason']}")
+    if tune_result["shortlist"]:
+        sl = Table(title="Shortlist: predicted vs measured (this dataset)", box=box.SIMPLE)
+        for col_name in ("", "Configuration", "Pred. recall", "Meas. recall", "Pred. p95", "Meas. p95", "Index MB"):
+            sl.add_column(col_name, justify="left" if col_name == "Configuration" else "center")
+        for e in tune_result["shortlist"]:
+            m, p = e["measured"] or {}, e["predicted"]
+            sl.add_row("*" if e["selected"] else ("safety" if e["role"] == "safety_net" else ""),
+                       e["config"]["id_string"], f"{p['recall']:.3f}",
+                       f"{m['recall_at_k']:.3f}" if m else "error", f"{p['latency_p95_ms']:.3f}",
+                       f"{m['latency_p95_ms']:.3f}" if m else "-",
+                       f"{m['serialized_index_mb']:.1f}" if m else "-")
+        console.print(sl)
     if tune_result["sla_satisfied"]:
-        panel_title = "[bold cyan]Configuration Selected (predicted to meet all targets):[/bold cyan]"
+        panel_title = f"[bold cyan]Configuration Selected ({basis}: meets all targets):[/bold cyan]"
         panel_border = "green"
     else:
-        panel_title = "[bold yellow]No configuration meets all targets - closest candidate (best-effort):[/bold yellow]"
+        panel_title = f"[bold yellow]No configuration meets all targets ({basis}) - best-effort choice:[/bold yellow]"
         panel_border = "yellow"
     console.print(Panel(
         f"{panel_title} [bold white]{rec_cfg['id_string']}[/bold white]\n"
@@ -118,9 +134,7 @@ def main():
 
     # 5. Empirical Ground-Truth Benchmarking
     console.print("\n[bold yellow][Step 4/5] Running Live Head-to-Head Arena Benchmark on FAISS...[/bold yellow]")
-    with console.status("[bold green]Computing exact Ground Truth & indexing live vectors...", spinner="dots"):
-        evaluator = BenchmarkEvaluator(database, queries, metric=MetricType.L2, k=k)
-        
+    with console.status("[bold green]Indexing live vectors for the arena...", spinner="dots"):
         # Build winning config
         winner_index_config = IndexConfig(
             family=IndexFamily(rec_cfg["family"]),

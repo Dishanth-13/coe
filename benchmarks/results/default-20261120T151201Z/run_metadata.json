@@ -1,0 +1,355 @@
+{
+  "schema_version": 2,
+  "run_id": "default-20261120T151201Z",
+  "started_utc": "2026-11-20T15:12:01Z",
+  "spec": {
+    "name": "default",
+    "datasets": [
+      {
+        "name": "clusters-20k-d128",
+        "generator": "gaussian_clusters",
+        "num_vectors": 20000,
+        "dimension": 128,
+        "num_queries": 200,
+        "seed": 101,
+        "metric": "L2",
+        "params": {
+          "num_clusters": 32,
+          "cluster_std": 0.25
+        }
+      },
+      {
+        "name": "semantic-20k-d64",
+        "generator": "semantic_embeddings",
+        "num_vectors": 20000,
+        "dimension": 64,
+        "num_queries": 200,
+        "seed": 202,
+        "metric": "L2",
+        "params": {
+          "intrinsic_dim": 12
+        }
+      },
+      {
+        "name": "isotropic-20k-d96",
+        "generator": "isotropic_gaussian",
+        "num_vectors": 20000,
+        "dimension": 96,
+        "num_queries": 200,
+        "seed": 303,
+        "metric": "L2",
+        "params": {}
+      },
+      {
+        "name": "clusters-20k-d256",
+        "generator": "gaussian_clusters",
+        "num_vectors": 20000,
+        "dimension": 256,
+        "num_queries": 200,
+        "seed": 404,
+        "metric": "L2",
+        "params": {
+          "num_clusters": 64,
+          "cluster_std": 0.15
+        }
+      },
+      {
+        "name": "semantic-30k-d128",
+        "generator": "semantic_embeddings",
+        "num_vectors": 30000,
+        "dimension": 128,
+        "num_queries": 200,
+        "seed": 505,
+        "metric": "L2",
+        "params": {
+          "intrinsic_dim": 32
+        }
+      }
+    ],
+    "include_flat": true,
+    "hnsw_builds": [
+      [
+        8,
+        64
+      ],
+      [
+        16,
+        64
+      ],
+      [
+        32,
+        64
+      ],
+      [
+        16,
+        200
+      ]
+    ],
+    "hnsw_ef_search": [
+      16,
+      64,
+      128,
+      256,
+      512
+    ],
+    "ivf_flat_nlist": [
+      64,
+      256,
+      1024
+    ],
+    "ivf_flat_nprobe": [
+      1,
+      4,
+      16,
+      64,
+      128,
+      256
+    ],
+    "ivf_pq_nlist": [
+      64,
+      256
+    ],
+    "ivf_pq_m": [
+      8,
+      16,
+      32
+    ],
+    "ivf_pq_nprobe": [
+      1,
+      16,
+      64
+    ],
+    "ivf_pq_nbits": 8,
+    "k": 10,
+    "repeats": 1,
+    "latency_repeats": 3,
+    "warmup_runs": 2,
+    "threads": 1
+  },
+  "spec_hash": "8b97d9f4c7c496fb",
+  "hardware": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "machine": "AMD64",
+    "logical_cpus": 16,
+    "physical_cpus": 10,
+    "total_ram_gb": 15.63,
+    "available_ram_gb_at_start": 3.5,
+    "python_version": "3.13.5",
+    "faiss_version": "1.16.0",
+    "faiss_compile_options": "",
+    "numpy_version": "2.5.5",
+    "sklearn_version": "1.9.1",
+    "faiss_threads": 1,
+    "hardware_id": "30e7243cb97f"
+  },
+  "measurement_notes": {
+    "measured": [
+      "recall_at_k",
+      "latency_p50_ms",
+      "latency_p95_ms",
+      "latency_p99_ms",
+      "latency_mean_ms",
+      "throughput_qps_sequential",
+      "build_time_s",
+      "serialized_index_mb",
+      "latency_p50_ms_min",
+      "latency_p50_ms_max",
+      "latency_p95_ms_min",
+      "latency_p95_ms_max",
+      "latency_p95_cv",
+      "recall_spread"
+    ],
+    "estimated": [
+      "estimated_memory_mb"
+    ],
+    "latency": "single-query sequential search in Python (one query per FAISS call), after warmup",
+    "latency_repeats": "each configuration is timed in `latency_repeats` back-to-back passes over all queries on the same built index (no rebuild); latency_p50/p95/p99/mean_ms and throughput are the MEDIAN across passes; *_min/*_max and latency_p95_cv (std/mean of per-pass p95) describe pass-to-pass variability",
+    "recall_spread": "max - min recall across passes (0 expected: search is deterministic)",
+    "faiss_warnings": "native FAISS stderr output captured during the index build (e.g. too few k-means training points); shared by rows with the same structure_id",
+    "throughput_qps_sequential": "queries / sum of single-query latencies; not concurrent throughput",
+    "build_time_s": "per index build; rows sharing a structure_id share one build (runtime-parameter variants)",
+    "serialized_index_mb": "size of faiss.write_index output, measured",
+    "estimated_memory_mb": "max(serialized size, analytical model); not measured process RAM"
+  },
+  "datasets": [
+    {
+      "name": "clusters-20k-d128",
+      "generator": "gaussian_clusters",
+      "fingerprint": "769d10f15c108a86",
+      "num_vectors": 20000,
+      "dimension": 128,
+      "num_queries": 200,
+      "seed": 101,
+      "metric": "L2",
+      "params": {
+        "num_clusters": 32,
+        "cluster_std": 0.25
+      },
+      "profile": {
+        "profile_intrinsic_dimension": 51.93,
+        "profile_hopkins": 0.6546,
+        "profile_norm_mean": 1.0,
+        "profile_norm_variance": 0.0,
+        "profile_sparsity_ratio": 0.0
+      },
+      "structures_built": 14,
+      "rows": 55,
+      "duration_s": 47.02
+    },
+    {
+      "name": "semantic-20k-d64",
+      "generator": "semantic_embeddings",
+      "fingerprint": "7ac356f555fb1ba6",
+      "num_vectors": 20000,
+      "dimension": 64,
+      "num_queries": 200,
+      "seed": 202,
+      "metric": "L2",
+      "params": {
+        "intrinsic_dim": 12
+      },
+      "profile": {
+        "profile_intrinsic_dimension": 11.95,
+        "profile_hopkins": 0.7696,
+        "profile_norm_mean": 1.0,
+        "profile_norm_variance": 0.0,
+        "profile_sparsity_ratio": 0.0
+      },
+      "structures_built": 14,
+      "rows": 55,
+      "duration_s": 38.02
+    },
+    {
+      "name": "isotropic-20k-d96",
+      "generator": "isotropic_gaussian",
+      "fingerprint": "4914fd3dafecb152",
+      "num_vectors": 20000,
+      "dimension": 96,
+      "num_queries": 200,
+      "seed": 303,
+      "metric": "L2",
+      "params": {},
+      "profile": {
+        "profile_intrinsic_dimension": 47.35,
+        "profile_hopkins": 0.6655,
+        "profile_norm_mean": 9.7741,
+        "profile_norm_variance": 0.5056,
+        "profile_sparsity_ratio": 0.0
+      },
+      "structures_built": 14,
+      "rows": 55,
+      "duration_s": 46.86
+    },
+    {
+      "name": "clusters-20k-d256",
+      "generator": "gaussian_clusters",
+      "fingerprint": "4d1d99e7fc4c0540",
+      "num_vectors": 20000,
+      "dimension": 256,
+      "num_queries": 200,
+      "seed": 404,
+      "metric": "L2",
+      "params": {
+        "num_clusters": 64,
+        "cluster_std": 0.15
+      },
+      "profile": {
+        "profile_intrinsic_dimension": 62.63,
+        "profile_hopkins": 0.6555,
+        "profile_norm_mean": 1.0,
+        "profile_norm_variance": 0.0,
+        "profile_sparsity_ratio": 0.0
+      },
+      "structures_built": 14,
+      "rows": 55,
+      "duration_s": 46.79
+    },
+    {
+      "name": "semantic-30k-d128",
+      "generator": "semantic_embeddings",
+      "fingerprint": "9d2d30cdf992a6ec",
+      "num_vectors": 30000,
+      "dimension": 128,
+      "num_queries": 200,
+      "seed": 505,
+      "metric": "L2",
+      "params": {
+        "intrinsic_dim": 32
+      },
+      "profile": {
+        "profile_intrinsic_dimension": 15.91,
+        "profile_hopkins": 0.7634,
+        "profile_norm_mean": 1.0,
+        "profile_norm_variance": 0.0,
+        "profile_sparsity_ratio": 0.0
+      },
+      "structures_built": 14,
+      "rows": 55,
+      "duration_s": 61.49
+    }
+  ],
+  "skipped_configurations": [
+    "clusters-20k-d128: IVF_FLAT nlist=64 nprobe=128: nprobe > nlist",
+    "clusters-20k-d128: IVF_FLAT nlist=64 nprobe=256: nprobe > nlist",
+    "semantic-20k-d64: IVF_FLAT nlist=64 nprobe=128: nprobe > nlist",
+    "semantic-20k-d64: IVF_FLAT nlist=64 nprobe=256: nprobe > nlist",
+    "isotropic-20k-d96: IVF_FLAT nlist=64 nprobe=128: nprobe > nlist",
+    "isotropic-20k-d96: IVF_FLAT nlist=64 nprobe=256: nprobe > nlist",
+    "clusters-20k-d256: IVF_FLAT nlist=64 nprobe=128: nprobe > nlist",
+    "clusters-20k-d256: IVF_FLAT nlist=64 nprobe=256: nprobe > nlist",
+    "semantic-30k-d128: IVF_FLAT nlist=64 nprobe=128: nprobe > nlist",
+    "semantic-30k-d128: IVF_FLAT nlist=64 nprobe=256: nprobe > nlist"
+  ],
+  "faiss_warnings": [
+    {
+      "structure_id": "clusters-20k-d128/IVF_FLAT/7",
+      "repeat": 0,
+      "build_config": "IVF-Flat(nlist=1024, nprobe=1)",
+      "warnings": [
+        "WARNING clustering 20000 points to 1024 centroids: please provide at least 39936 training points"
+      ]
+    },
+    {
+      "structure_id": "semantic-20k-d64/IVF_FLAT/7",
+      "repeat": 0,
+      "build_config": "IVF-Flat(nlist=1024, nprobe=1)",
+      "warnings": [
+        "WARNING clustering 20000 points to 1024 centroids: please provide at least 39936 training points"
+      ]
+    },
+    {
+      "structure_id": "isotropic-20k-d96/IVF_FLAT/7",
+      "repeat": 0,
+      "build_config": "IVF-Flat(nlist=1024, nprobe=1)",
+      "warnings": [
+        "WARNING clustering 20000 points to 1024 centroids: please provide at least 39936 training points"
+      ]
+    },
+    {
+      "structure_id": "clusters-20k-d256/IVF_FLAT/7",
+      "repeat": 0,
+      "build_config": "IVF-Flat(nlist=1024, nprobe=1)",
+      "warnings": [
+        "WARNING clustering 20000 points to 1024 centroids: please provide at least 39936 training points"
+      ]
+    },
+    {
+      "structure_id": "semantic-30k-d128/IVF_FLAT/7",
+      "repeat": 0,
+      "build_config": "IVF-Flat(nlist=1024, nprobe=1)",
+      "warnings": [
+        "WARNING clustering 30000 points to 1024 centroids: please provide at least 39936 training points"
+      ]
+    }
+  ],
+  "rows_written": 275,
+  "errors": 0,
+  "status": "completed",
+  "finished_utc": "2026-11-20T15:16:01Z",
+  "duration_s": 240.23,
+  "files": {
+    "measurements": "measurements.csv",
+    "manifest": "run_metadata.json"
+  }
+}

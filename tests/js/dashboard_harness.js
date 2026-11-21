@@ -97,7 +97,7 @@ const profileOk = (warnings = []) => ({
     warnings, estimated_peak_memory_mb: 40.0, vector_sample_2d: []
   }
 });
-const tuneOk = (memTarget = 128, memPred = 9.6) => ({
+const tuneOk = (memTarget = 128, memPred = 9.6, extra = {}) => ({
   status: 200,
   body: {
     recommended_config: { id_string: WINNER, family: 'HNSW' },
@@ -114,9 +114,16 @@ const tuneOk = (memTarget = 128, memPred = 9.6) => ({
       { constraint: 'latency_p95_ms', predicted: 0.08, target: 1.5, comparison: '<=', met: true },
       { constraint: 'memory_mb', predicted: memPred, target: memTarget, comparison: '<=', met: memPred <= memTarget }
     ],
-    deployed_config: { id_string: WINNER }, config_adjustments: []
+    deployed_config: { id_string: WINNER }, config_adjustments: [],
+    ...extra
   }
 });
+// Shortlist-and-benchmark response: decision based on measurements, predictions still reported
+const MEASURED_EXTRA = {
+  tuning_mode: 'predict_shortlist_benchmark', selection_basis: 'measured', benchmarked_count: 8,
+  recommended_measured: { recall_at_k: 0.98, latency_p95_ms: 0.341, serialized_index_mb: 13.04 }
+};
+const PREDICTION_ONLY_EXTRA = { tuning_mode: 'prediction_only', selection_basis: 'predicted' };
 const row = (id, recall) => ({
   config: { id_string: id }, recall_at_k: recall, latency_p95_ms: 0.1, latency_p99_ms: 0.12,
   throughput_qps: 9000, memory_footprint_mb: 7.5, index_serialized_mb: 7.3, index_build_time_s: 0.05
@@ -145,6 +152,7 @@ async function main() {
   const routes = { '/api/system': [system()] };
   const set = (url, ...responses) => { routes[url] = responses; };
   const calls = [];
+  const intervals = [];  // telemetry poller registered by app.js (run on demand)
 
   const fetch = async (url, opts) => {
     calls.push(url);
@@ -159,12 +167,21 @@ async function main() {
   class Chart { constructor() {} destroy() {} }
   const ctx = vm.createContext({
     document, window: {}, fetch, Chart, performance: { now: () => Date.now() },
-    setInterval: () => 0, console: { log() {}, warn() {}, error() {} }
+    setInterval: (fn) => { intervals.push(fn); return intervals.length; },
+    console: { log() {}, warn() {}, error() {} }
   });
 
   // Initial automatic run on page load: success unless the scenario says otherwise
   set('/api/profile', profileOk(scenario === 'warnings' ? ['num_vectors=50000 exceeds the interactive limit; profiled and tuned a synthetic dataset of 30000 vectors instead.'] : []));
-  set('/api/tune', scenario === 'memory_label' ? tuneOk(50, 60) : tuneOk());
+  if (scenario === 'memory_label') set('/api/tune', tuneOk(50, 60));
+  else if (scenario.startsWith('deployment_')) set('/api/tune', tuneOk(128, 9.6, { deployment_id: 7 }));
+  else if (scenario === 'measured_selection') set('/api/tune', tuneOk(128, 9.6, MEASURED_EXTRA));
+  else if (scenario === 'prediction_only') {
+    const t = tuneOk(128, 9.6, PREDICTION_ONLY_EXTRA);
+    t.body.recommended_prediction.recall_uncertainty = null;
+    t.body.recommended_prediction.latency_uncertainty_p95 = null;
+    set('/api/tune', t);
+  } else set('/api/tune', tuneOk());
   set('/api/benchmark', benchOk());
 
   vm.runInContext(APP_JS, ctx);
@@ -174,6 +191,15 @@ async function main() {
   if (scenario === 'profile_fails_after_success') {
     set('/api/profile', err(400, 'Invalid request: dimension: Input should be less than or equal to 4096'));
     byId.triggerAutoTuneBtn.click();
+    await flush();
+  } else if (scenario.startsWith('deployment_')) {
+    // Next telemetry poll: same deployment (no alarm), replaced by another session, or none deployed
+    const active = scenario === 'deployment_unchanged' ? { deployment_id: 7, config: { id_string: WINNER } }
+      : scenario === 'deployment_replaced' ? { deployment_id: 8, config: { id_string: 'Flat-Exact' } } : null;
+    set('/api/system', { status: 200, body: { ...system().body, active_index: active } });
+    intervals.forEach(fn => fn());
+    await flush();
+    intervals.forEach(fn => fn());  // a second poll must not re-raise or change anything
     await flush();
   } else if (scenario === 'tune_fails_after_profile') {
     set('/api/profile', profileOk());
@@ -197,6 +223,11 @@ async function main() {
     benchmarkDisabled: byId.runArenaBtn.disabled,
     runDisabled: byId.triggerAutoTuneBtn.disabled,
     memorySub: text('winnerMemorySub'),
+    recallSub: text('winnerRecallCi'),
+    latencySub: text('winnerLatencyCi'),
+    winnerRecall: text('winnerRecall'),
+    slaText: text('winnerSlaStatus'),
+    recommendationDesc: text('recommendationDesc'),
     memorySubClass: byId.winnerMemorySub.className
   }));
 }

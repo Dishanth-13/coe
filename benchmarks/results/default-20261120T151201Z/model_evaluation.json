@@ -1,0 +1,2026 @@
+{
+  "protocol": "leave-one-dataset-out: for each of the 5 datasets, MeasuredCostModel is trained on the other 4 and evaluated on every configuration of the held-out dataset. The original SurrogateCostModel (synthetic-trained) is evaluated on the same rows without retraining.",
+  "rows": 275,
+  "datasets": [
+    "clusters-20k-d128",
+    "clusters-20k-d256",
+    "isotropic-20k-d96",
+    "semantic-20k-d64",
+    "semantic-30k-d128"
+  ],
+  "accuracy": {
+    "measured_model": {
+      "recall": {
+        "all": {
+          "n": 275,
+          "mae": 0.1114453629804708,
+          "rmse": 0.15943077717124995,
+          "r2": 0.7530265674763262,
+          "median_abs_pct_error": 11.212587989936967
+        },
+        "FLAT": {
+          "n": 5,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "r2": null,
+          "median_abs_pct_error": 0.0
+        },
+        "HNSW": {
+          "n": 100,
+          "mae": 0.08810237263352404,
+          "rmse": 0.13307366383513447,
+          "r2": 0.5131887535736277,
+          "median_abs_pct_error": 5.829889153439138
+        },
+        "IVF_FLAT": {
+          "n": 80,
+          "mae": 0.11336032652266721,
+          "rmse": 0.15996635823344107,
+          "r2": 0.7418570202453859,
+          "median_abs_pct_error": 10.113021548641912
+        },
+        "IVF_PQ": {
+          "n": 90,
+          "mae": 0.14187123816070765,
+          "rmse": 0.18773499742174113,
+          "r2": 0.3952250278861599,
+          "median_abs_pct_error": 36.81705358338539
+        }
+      },
+      "p95": {
+        "all": {
+          "n": 275,
+          "mae": 0.05044066068059821,
+          "rmse": 0.10300234164986379,
+          "r2": 0.8324103460316422,
+          "median_abs_pct_error": 22.84700306211011,
+          "median_ratio_pred_over_true": 1.0646402194185574,
+          "median_error_factor": 1.269635725449546,
+          "within_25pct": 0.48363636363636364,
+          "within_2x": 0.9745454545454545,
+          "r2_log": 0.9246536729241255
+        },
+        "FLAT": {
+          "n": 5,
+          "mae": 0.018472210266475747,
+          "rmse": 0.025669511066457342,
+          "r2": 0.9938864900191587,
+          "median_abs_pct_error": 5.07649128149705,
+          "median_ratio_pred_over_true": 1.0070642569600636,
+          "median_error_factor": 1.053479810744791,
+          "within_25pct": 1.0,
+          "within_2x": 1.0,
+          "r2_log": 0.993799639942992
+        },
+        "HNSW": {
+          "n": 100,
+          "mae": 0.07725640410844062,
+          "rmse": 0.12995755962959377,
+          "r2": 0.8058400649866504,
+          "median_abs_pct_error": 26.621898065313854,
+          "median_ratio_pred_over_true": 1.131275670363189,
+          "median_error_factor": 1.2997431363845022,
+          "within_25pct": 0.36,
+          "within_2x": 1.0,
+          "r2_log": 0.9228332017699276
+        },
+        "IVF_FLAT": {
+          "n": 80,
+          "mae": 0.053306047585730876,
+          "rmse": 0.11824164242279175,
+          "r2": 0.7740742737541296,
+          "median_abs_pct_error": 28.241280452104,
+          "median_ratio_pred_over_true": 1.0646657233033496,
+          "median_error_factor": 1.3026043546264017,
+          "within_25pct": 0.3875,
+          "within_2x": 0.975,
+          "r2_log": 0.9326105282045338
+        },
+        "IVF_PQ": {
+          "n": 90,
+          "mae": 0.01987440464588443,
+          "rmse": 0.0344688951996584,
+          "r2": 0.9180191507285731,
+          "median_abs_pct_error": 14.519886845805342,
+          "median_ratio_pred_over_true": 1.0433713663355815,
+          "median_error_factor": 1.1452774223170468,
+          "within_25pct": 0.6777777777777778,
+          "within_2x": 0.9444444444444444,
+          "r2_log": 0.8694207792042423
+        }
+      },
+      "build": {
+        "all": {
+          "n": 70,
+          "mae": 0.826579886717314,
+          "rmse": 1.6913417966352327,
+          "r2": 0.7816308782961586,
+          "median_abs_pct_error": 15.241579721869106,
+          "median_ratio_pred_over_true": 1.0000181099337062,
+          "median_error_factor": 1.164986331949446,
+          "within_25pct": 0.5714285714285714,
+          "within_2x": 0.9571428571428572,
+          "r2_log": 0.9761295962269763
+        },
+        "FLAT": {
+          "n": 5,
+          "mae": 6.693042477016022e-05,
+          "rmse": 8.188978845223304e-05,
+          "r2": 0.9961464364710698,
+          "median_abs_pct_error": 2.924264182016354,
+          "median_ratio_pred_over_true": 1.005371116109025,
+          "median_error_factor": 1.0292426418201635,
+          "within_25pct": 1.0,
+          "within_2x": 1.0,
+          "r2_log": 0.9910887224103923
+        },
+        "HNSW": {
+          "n": 20,
+          "mae": 0.6518484592556748,
+          "rmse": 0.9636013843889865,
+          "r2": 0.4176527449582812,
+          "median_abs_pct_error": 34.19710048223661,
+          "median_ratio_pred_over_true": 0.8922712865479978,
+          "median_error_factor": 1.4308722268051572,
+          "within_25pct": 0.35,
+          "within_2x": 0.85,
+          "r2_log": 0.46425540948686217
+        },
+        "IVF_FLAT": {
+          "n": 15,
+          "mae": 0.03245953191354698,
+          "rmse": 0.06528019405604929,
+          "r2": 0.8421446339070333,
+          "median_abs_pct_error": 10.423069715239224,
+          "median_ratio_pred_over_true": 0.9806226130770072,
+          "median_error_factor": 1.116358862511863,
+          "within_25pct": 0.6666666666666666,
+          "within_2x": 1.0,
+          "r2_log": 0.9241055565399587
+        },
+        "IVF_PQ": {
+          "n": 30,
+          "mae": 1.4778798418090475,
+          "rmse": 2.460420830966888,
+          "r2": 0.610974233469666,
+          "median_abs_pct_error": 16.09099989408359,
+          "median_ratio_pred_over_true": 1.0162073487619465,
+          "median_error_factor": 1.160909998940836,
+          "within_25pct": 0.6,
+          "within_2x": 1.0,
+          "r2_log": 0.8230118982292748
+        }
+      }
+    },
+    "synthetic_model": {
+      "recall": {
+        "all": {
+          "n": 275,
+          "mae": 0.3079303751978163,
+          "rmse": 0.38240713465629483,
+          "r2": -0.4208815803288686,
+          "median_abs_pct_error": 37.46499656071677
+        },
+        "FLAT": {
+          "n": 5,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "r2": null,
+          "median_abs_pct_error": 0.0
+        },
+        "HNSW": {
+          "n": 100,
+          "mae": 0.1816284663674298,
+          "rmse": 0.22071188306305536,
+          "r2": -0.33914562433232565,
+          "median_abs_pct_error": 20.075080727519783
+        },
+        "IVF_FLAT": {
+          "n": 80,
+          "mae": 0.29508608492787247,
+          "rmse": 0.36471654895994643,
+          "r2": -0.3418808118146406,
+          "median_abs_pct_error": 43.40433823494684
+        },
+        "IVF_PQ": {
+          "n": 90,
+          "mae": 0.4767902194269635,
+          "rmse": 0.5238941597473686,
+          "r2": -3.7096696137211804,
+          "median_abs_pct_error": 132.72180738865774
+        }
+      },
+      "p95": {
+        "all": {
+          "n": 275,
+          "mae": 1.0078918194220388,
+          "rmse": 2.475159199270395,
+          "r2": -95.7741316485213,
+          "median_abs_pct_error": 314.35795573122834,
+          "median_ratio_pred_over_true": 4.143579557312283,
+          "median_error_factor": 5.2247301428310635,
+          "within_25pct": 0.05090909090909091,
+          "within_2x": 0.14181818181818182,
+          "r2_log": -1.2145133011977545
+        },
+        "FLAT": {
+          "n": 5,
+          "mae": 0.20028976973697174,
+          "rmse": 0.2890815616357885,
+          "r2": 0.2246528112389814,
+          "median_abs_pct_error": 32.02600089768833,
+          "median_ratio_pred_over_true": 0.7136567370708,
+          "median_error_factor": 1.471150753532746,
+          "within_25pct": 0.2,
+          "within_2x": 0.8,
+          "r2_log": 0.5199402571037399
+        },
+        "HNSW": {
+          "n": 100,
+          "mae": 0.21871734751896987,
+          "rmse": 0.34876368369556865,
+          "r2": -0.398360137518601,
+          "median_abs_pct_error": 75.1300657259281,
+          "median_ratio_pred_over_true": 0.4712580358678168,
+          "median_error_factor": 2.8187697089684676,
+          "within_25pct": 0.13,
+          "within_2x": 0.35,
+          "r2_log": -0.2389313800181101
+        },
+        "IVF_FLAT": {
+          "n": 80,
+          "mae": 2.28095714168877,
+          "rmse": 4.196504483158537,
+          "r2": -283.57723973325807,
+          "median_abs_pct_error": 946.5129552962771,
+          "median_ratio_pred_over_true": 10.465129552962772,
+          "median_error_factor": 10.465129552962772,
+          "within_25pct": 0.0,
+          "within_2x": 0.0,
+          "r2_log": -2.5090224737882485
+        },
+        "IVF_PQ": {
+          "n": 90,
+          "mae": 0.7980055045041917,
+          "rmse": 1.7105234752687135,
+          "r2": -200.8904441780081,
+          "median_abs_pct_error": 446.8766340897217,
+          "median_ratio_pred_over_true": 5.468766340897217,
+          "median_error_factor": 5.468766340897217,
+          "within_25pct": 0.0,
+          "within_2x": 0.0,
+          "r2_log": -2.2028845388072
+        }
+      },
+      "build": {
+        "all": {
+          "n": 70,
+          "mae": 7.246210018983528,
+          "rmse": 12.078395247048595,
+          "r2": -10.136454292491141,
+          "median_abs_pct_error": 539.1062092079421,
+          "median_ratio_pred_over_true": 6.391062092079421,
+          "median_error_factor": 6.607371574067706,
+          "within_25pct": 0.05714285714285714,
+          "within_2x": 0.22857142857142856,
+          "r2_log": -0.6272087134104583
+        },
+        "FLAT": {
+          "n": 5,
+          "mae": 3.5548293248900036,
+          "rmse": 3.6634281822459296,
+          "r2": -7712200.8685045475,
+          "median_abs_pct_error": 120535.92393945646,
+          "median_ratio_pred_over_true": 1206.3592393945646,
+          "median_error_factor": 1206.3592393945642,
+          "within_25pct": 0.0,
+          "within_2x": 0.0,
+          "r2_log": -234.862108944094
+        },
+        "HNSW": {
+          "n": 20,
+          "mae": 16.751787575679934,
+          "rmse": 21.471072541314054,
+          "r2": -288.1310148782099,
+          "median_abs_pct_error": 787.2583156524337,
+          "median_ratio_pred_over_true": 8.872583156524337,
+          "median_error_factor": 8.872583156524337,
+          "within_25pct": 0.0,
+          "within_2x": 0.0,
+          "r2_log": -11.534525912582188
+        },
+        "IVF_FLAT": {
+          "n": 15,
+          "mae": 3.429514938480786,
+          "rmse": 3.6285304433610253,
+          "r2": -486.7059102133707,
+          "median_abs_pct_error": 1802.4716863159397,
+          "median_ratio_pred_over_true": 19.024716863159398,
+          "median_error_factor": 19.024716863159394,
+          "within_25pct": 0.0,
+          "within_2x": 0.0,
+          "r2_log": -13.522513691046834
+        },
+        "IVF_PQ": {
+          "n": 30,
+          "mae": 3.4327359704528826,
+          "rmse": 4.924083917099331,
+          "r2": -0.5581543190064078,
+          "median_abs_pct_error": 49.27345978113154,
+          "median_ratio_pred_over_true": 0.6703392753253072,
+          "median_error_factor": 1.9713836440537664,
+          "within_25pct": 0.13333333333333333,
+          "within_2x": 0.5333333333333333,
+          "r2_log": -0.6178195220033333
+        }
+      }
+    }
+  },
+  "ranking": {
+    "measured_model": {
+      "clusters-20k-d128": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.9678187484606837,
+          "kendall": 0.8641730066320499
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.9794372294372297,
+          "kendall": 0.8841750841750843
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 1.0,
+          "kendall": 1.0
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.9954887218045112,
+          "kendall": 0.968421052631579
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9757177034464688,
+          "kendall": 0.9121418755437382
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.988235294117647,
+          "kendall": 0.9500000000000001
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8307533539731682,
+          "kendall": 0.6993464052287582
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9855521155830752,
+          "kendall": 0.9215686274509804
+        }
+      },
+      "clusters-20k-d256": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.9317939967549308,
+          "kendall": 0.7923135998169956
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.9364357864357866,
+          "kendall": 0.7993265993265994
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.993984962406015,
+          "kendall": 0.9578947368421054
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.993984962406015,
+          "kendall": 0.9578947368421054
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9757177034464688,
+          "kendall": 0.9121418755437382
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9735294117647059,
+          "kendall": 0.8833333333333333
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.7527104771801856,
+          "kendall": 0.5770522819340648
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9422084623323013,
+          "kendall": 0.8431372549019609
+        }
+      },
+      "isotropic-20k-d96": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.9425984108321893,
+          "kendall": 0.8107937329472137
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.9771284271284273,
+          "kendall": 0.8855218855218856
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.9864661654135337,
+          "kendall": 0.9368421052631579
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.9954887218045112,
+          "kendall": 0.968421052631579
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9757177034464688,
+          "kendall": 0.8954053273686235
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9852941176470588,
+          "kendall": 0.9333333333333332
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8121775025799793,
+          "kendall": 0.6862745098039217
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9938080495356036,
+          "kendall": 0.9607843137254903
+        }
+      },
+      "semantic-20k-d64": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.9355219161424603,
+          "kendall": 0.8013631710545445
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.9801587301587303,
+          "kendall": 0.9043771043771046
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.8820454209796076,
+          "kendall": 0.794742570061768
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.9894736842105262,
+          "kendall": 0.9368421052631579
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9236336351529147,
+          "kendall": 0.8184910116988972
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9823529411764707,
+          "kendall": 0.9166666666666666
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8484249800628318,
+          "kendall": 0.6778343894045651
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9958720330237358,
+          "kendall": 0.9738562091503269
+        }
+      },
+      "semantic-30k-d128": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.9604067050308615,
+          "kendall": 0.8550569850290011
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.966810966810967,
+          "kendall": 0.8491582491582492
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.8818564125106083,
+          "kendall": 0.777127872214214
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.9894736842105262,
+          "kendall": 0.9473684210526316
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9299168571607577,
+          "kendall": 0.8375256863895691
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.976470588235294,
+          "kendall": 0.9166666666666666
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8784302537479808,
+          "kendall": 0.7044161301655284
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9938080495356036,
+          "kendall": 0.9607843137254903
+        }
+      }
+    },
+    "synthetic_model": {
+      "clusters-20k-d128": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.21501305432788992,
+          "kendall": 0.2119614129479122
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.0036910882543806584,
+          "kendall": 0.08069413864429072
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.8569205892511857,
+          "kendall": 0.7344676469785475
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.693687975619296,
+          "kendall": 0.5803810000880093
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9823269513991164,
+          "kendall": 0.9159663865546219
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9459172892790567,
+          "kendall": 0.8577941541015599
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9235542118208594,
+          "kendall": 0.8092280392312107
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9419770043205501,
+          "kendall": 0.8335000500166726
+        }
+      },
+      "clusters-20k-d256": {
+        "recall_all": {
+          "n": 55,
+          "spearman": -0.002417986992339845,
+          "kendall": 0.05418243925046813
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.2037081661584167,
+          "kendall": 0.2035716467198352
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.8382581431652243,
+          "kendall": 0.7245890143840726
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.8774535953713307,
+          "kendall": 0.7677718959499145
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9845477279120477,
+          "kendall": 0.9288784237188525
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9682317315364256,
+          "kendall": 0.9062808776752195
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.7962775715882577,
+          "kendall": 0.5894168988939446
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9399044476553785,
+          "kendall": 0.8201640492164058
+        }
+      },
+      "isotropic-20k-d96": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.29155991791795716,
+          "kendall": 0.26986824845756496
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.09154460322993073,
+          "kendall": 0.1309023247402714
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.9114893752862692,
+          "kendall": 0.805404928064624
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.693687975619296,
+          "kendall": 0.5803810000880093
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9175257731958762,
+          "kendall": 0.7815126050420169
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9318774181125219,
+          "kendall": 0.8108270322272662
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8884302261363971,
+          "kendall": 0.7434371417327383
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9399044476553785,
+          "kendall": 0.8201640492164058
+        }
+      },
+      "semantic-20k-d64": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.05560775307202941,
+          "kendall": 0.09500908284226446
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.15545313243859163,
+          "kendall": 0.15957118462605635
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.8611521866830234,
+          "kendall": 0.7562253446405852
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": null,
+          "kendall": null
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9047839691293859,
+          "kendall": 0.780421662317553
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9481741615135357,
+          "kendall": 0.8453303101943839
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8140869482901901,
+          "kendall": 0.6287941929630008
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9486883971687441,
+          "kendall": 0.8430404281988854
+        }
+      },
+      "semantic-30k-d128": {
+        "recall_all": {
+          "n": 55,
+          "spearman": 0.016616218983083405,
+          "kendall": 0.07068384528666026
+        },
+        "p95_all": {
+          "n": 55,
+          "spearman": 0.36311537520322995,
+          "kendall": 0.32277655457716287
+        },
+        "recall_HNSW": {
+          "n": 20,
+          "spearman": 0.8050234037676947,
+          "kendall": 0.7288125211307637
+        },
+        "p95_HNSW": {
+          "n": 20,
+          "spearman": 0.693687975619296,
+          "kendall": 0.5803810000880093
+        },
+        "recall_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9180256803790551,
+          "kendall": 0.802808369894322
+        },
+        "p95_IVF_FLAT": {
+          "n": 16,
+          "spearman": 0.9785351268404034,
+          "kendall": 0.9097816785925635
+        },
+        "recall_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.8466325789324848,
+          "kendall": 0.6443098130054634
+        },
+        "p95_IVF_PQ": {
+          "n": 18,
+          "spearman": 0.9544123443115805,
+          "kendall": 0.860172051617206
+        }
+      }
+    }
+  },
+  "selection": {
+    "measured_model": {
+      "clusters-20k-d128": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.946,
+            "measured_p95_ms": 0.20055999557371235,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.9025,
+            "measured_p95_ms": 0.32626000975142233,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.6267451982043504,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=128)",
+            "IVF-Flat(nlist=1024, nprobe=256)",
+            "IVF-Flat(nlist=256, nprobe=128)",
+            "HNSW(M=16, efC=64, efS=256)",
+            "HNSW(M=16, efC=200, efS=256)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.946,
+            "measured_p95_ms": 0.20055999557371235,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=64)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.35266500708530657,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=256)",
+            "measured_recall": 0.9715,
+            "measured_p95_ms": 0.5475550067785662,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.5526207471049642,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=256)",
+            "Flat-Exact",
+            "HNSW(M=16, efC=64, efS=512)",
+            "HNSW(M=16, efC=200, efS=512)",
+            "HNSW(M=32, efC=64, efS=512)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.38025999965611845,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.078247039021189
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=64)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.35266500708530657,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.38025999965611845,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.078247039021189,
+          "shortlist": [
+            "Flat-Exact",
+            "HNSW(M=32, efC=64, efS=512)",
+            "HNSW(M=16, efC=200, efS=512)",
+            "HNSW(M=16, efC=64, efS=512)",
+            "HNSW(M=32, efC=64, efS=256)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.38025999965611845,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.078247039021189
+        }
+      ],
+      "clusters-20k-d256": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=16)",
+            "measured_recall": 0.9,
+            "measured_p95_ms": 0.11504500289447604,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=64)",
+            "measured_recall": 0.8775,
+            "measured_p95_ms": 0.17563499786774622,
+            "meets_target": false
+          },
+          "direct_meets_target": false,
+          "direct_latency_regret": null,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=64)",
+            "IVF-Flat(nlist=1024, nprobe=128)",
+            "HNSW(M=16, efC=64, efS=128)",
+            "HNSW(M=16, efC=200, efS=128)",
+            "IVF-Flat(nlist=256, nprobe=64)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=1024, nprobe=128)",
+            "measured_recall": 0.951,
+            "measured_p95_ms": 0.2548850039602257,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 2.2155243387147947
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=16)",
+            "measured_recall": 0.958,
+            "measured_p95_ms": 0.24951000741566529,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=16, efC=64, efS=128)",
+            "measured_recall": 0.909,
+            "measured_p95_ms": 0.2685049934370909,
+            "meets_target": false
+          },
+          "direct_meets_target": false,
+          "direct_latency_regret": null,
+          "shortlist": [
+            "HNSW(M=16, efC=64, efS=128)",
+            "HNSW(M=16, efC=200, efS=128)",
+            "IVF-Flat(nlist=256, nprobe=64)",
+            "HNSW(M=32, efC=64, efS=128)",
+            "IVF-Flat(nlist=1024, nprobe=256)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=64)",
+            "measured_recall": 0.972,
+            "measured_p95_ms": 0.3738399944268167,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.4982965945891975
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.992,
+            "measured_p95_ms": 0.665884991758503,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=256)",
+            "measured_recall": 0.966,
+            "measured_p95_ms": 0.650174988550134,
+            "meets_target": false
+          },
+          "direct_meets_target": false,
+          "direct_latency_regret": null,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=256)",
+            "HNSW(M=16, efC=64, efS=512)",
+            "HNSW(M=32, efC=64, efS=512)",
+            "HNSW(M=16, efC=200, efS=512)",
+            "Flat-Exact"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 1.0522899887291712,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.5802878901809008
+        }
+      ],
+      "isotropic-20k-d96": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.928,
+            "measured_p95_ms": 0.18216498865513123,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.928,
+            "measured_p95_ms": 0.18216498865513123,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.0,
+          "shortlist": [
+            "IVF-Flat(nlist=256, nprobe=128)",
+            "Flat-Exact",
+            "HNSW(M=16, efC=64, efS=256)",
+            "HNSW(M=16, efC=200, efS=256)",
+            "IVF-Flat(nlist=64, nprobe=64)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.928,
+            "measured_p95_ms": 0.18216498865513123,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.0,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "HNSW(M=32, efC=64, efS=256)",
+            "HNSW(M=16, efC=64, efS=512)",
+            "HNSW(M=16, efC=200, efS=512)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.0,
+          "shortlist": [
+            "Flat-Exact",
+            "HNSW(M=32, efC=64, efS=512)",
+            "HNSW(M=16, efC=200, efS=512)",
+            "HNSW(M=16, efC=64, efS=512)",
+            "HNSW(M=32, efC=64, efS=256)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        }
+      ],
+      "semantic-20k-d64": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "HNSW(M=8, efC=64, efS=16)",
+            "measured_recall": 0.945,
+            "measured_p95_ms": 0.015119998715817921,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 9.911376759511485,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=128)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "HNSW(M=32, efC=64, efS=256)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.10349500080337741,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 6.844908041897199
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "HNSW(M=32, efC=64, efS=16)",
+            "measured_recall": 0.973,
+            "measured_p95_ms": 0.01610000617802143,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 9.308071203126577,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "HNSW(M=16, efC=200, efS=512)",
+            "HNSW(M=32, efC=64, efS=512)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 9.308071203126577
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=16)",
+            "measured_recall": 0.997,
+            "measured_p95_ms": 0.023105000582290813,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 6.48604198654138,
+          "shortlist": [
+            "Flat-Exact",
+            "HNSW(M=32, efC=64, efS=512)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "HNSW(M=16, efC=200, efS=512)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 6.48604198654138
+        }
+      ],
+      "semantic-30k-d128": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "HNSW(M=8, efC=64, efS=16)",
+            "measured_recall": 0.9235,
+            "measured_p95_ms": 0.017305000801570714,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=16)",
+            "measured_recall": 0.9985,
+            "measured_p95_ms": 0.07481000211555511,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 4.32302794858957,
+          "shortlist": [
+            "IVF-Flat(nlist=256, nprobe=16)",
+            "HNSW(M=16, efC=200, efS=64)",
+            "HNSW(M=16, efC=64, efS=64)",
+            "IVF-Flat(nlist=1024, nprobe=64)",
+            "HNSW(M=8, efC=64, efS=128)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=16, efC=64, efS=64)",
+            "measured_recall": 0.9995,
+            "measured_p95_ms": 0.06310000026132911,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 3.6463448331999935
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "HNSW(M=16, efC=64, efS=16)",
+            "measured_recall": 0.954,
+            "measured_p95_ms": 0.02511000129743479,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "IVF-Flat(nlist=1024, nprobe=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.1630849903449416,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 6.494822059670788,
+          "shortlist": [
+            "IVF-Flat(nlist=1024, nprobe=128)",
+            "IVF-Flat(nlist=64, nprobe=16)",
+            "IVF-Flat(nlist=256, nprobe=64)",
+            "IVF-Flat(nlist=1024, nprobe=256)",
+            "HNSW(M=32, efC=64, efS=128)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.1354549982352182,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 5.394464007815728
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "HNSW(M=8, efC=64, efS=64)",
+            "measured_recall": 0.9945,
+            "measured_p95_ms": 0.05271499467198736,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.4888999959803186,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 9.274400937009275,
+          "shortlist": [
+            "IVF-Flat(nlist=256, nprobe=128)",
+            "Flat-Exact",
+            "HNSW(M=16, efC=200, efS=512)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.4888999959803186,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 9.274400937009275
+        }
+      ]
+    },
+    "synthetic_model": {
+      "clusters-20k-d128": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.946,
+            "measured_p95_ms": 0.20055999557371235,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.9025,
+            "measured_p95_ms": 0.32626000975142233,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.6267451982043504,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=128)",
+            "HNSW(M=32, efC=64, efS=256)",
+            "HNSW(M=32, efC=64, efS=512)",
+            "IVF-PQ(nlist=64, nprobe=1, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.9025,
+            "measured_p95_ms": 0.32626000975142233,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.6267451982043504
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=64)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.35266500708530657,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.38025999965611845,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.078247039021189,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-PQ(nlist=256, nprobe=64, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=64)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.35266500708530657,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=64)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.35266500708530657,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.38025999965611845,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.078247039021189,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-PQ(nlist=256, nprobe=64, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=64)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.35266500708530657,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        }
+      ],
+      "clusters-20k-d256": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=16)",
+            "measured_recall": 0.9,
+            "measured_p95_ms": 0.11504500289447604,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.9245,
+            "measured_p95_ms": 0.3408149910683278,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 2.9624493241217715,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=128)",
+            "HNSW(M=32, efC=64, efS=256)",
+            "IVF-PQ(nlist=256, nprobe=1, M_pq=32)",
+            "HNSW(M=32, efC=64, efS=512)",
+            "IVF-PQ(nlist=64, nprobe=1, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.9245,
+            "measured_p95_ms": 0.3408149910683278,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 2.9624493241217715
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=64, nprobe=16)",
+            "measured_recall": 0.958,
+            "measured_p95_ms": 0.24951000741566529,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 1.0522899887291712,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 4.21742598474671,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=64, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 1.0522899887291712,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 4.21742598474671
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.992,
+            "measured_p95_ms": 0.665884991758503,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 1.0522899887291712,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.5802878901809008,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=64, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 1.0522899887291712,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.5802878901809008
+        }
+      ],
+      "isotropic-20k-d96": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=128)",
+            "measured_recall": 0.928,
+            "measured_p95_ms": 0.18216498865513123,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.936,
+            "measured_p95_ms": 0.1997899933485314,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.0967529755499135,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=128)",
+            "HNSW(M=32, efC=64, efS=256)",
+            "HNSW(M=32, efC=64, efS=512)",
+            "IVF-PQ(nlist=64, nprobe=1, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 0.936,
+            "measured_p95_ms": 0.1997899933485314,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0967529755499135
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.0,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-PQ(nlist=256, nprobe=64, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 1.0,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-PQ(nlist=256, nprobe=64, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": true,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.2470299885317217,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 1.0
+        }
+      ],
+      "semantic-20k-d64": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "HNSW(M=8, efC=64, efS=16)",
+            "measured_recall": 0.945,
+            "measured_p95_ms": 0.015119998715817921,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.08160000943462362,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 5.3968264791753615,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=128)",
+            "HNSW(M=32, efC=64, efS=256)",
+            "HNSW(M=32, efC=64, efS=512)",
+            "IVF-PQ(nlist=256, nprobe=1, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=1, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.08160000943462362,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 5.3968264791753615
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "HNSW(M=32, efC=64, efS=16)",
+            "measured_recall": 0.973,
+            "measured_p95_ms": 0.01610000617802143,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 9.308071203126577,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-PQ(nlist=64, nprobe=16, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=64, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 9.308071203126577
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "IVF-Flat(nlist=256, nprobe=16)",
+            "measured_recall": 0.997,
+            "measured_p95_ms": 0.023105000582290813,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 6.48604198654138,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-PQ(nlist=64, nprobe=16, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=64, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.14986000387580126,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 6.48604198654138
+        }
+      ],
+      "semantic-30k-d128": [
+        {
+          "target": 0.9,
+          "oracle": {
+            "config_id": "HNSW(M=8, efC=64, efS=16)",
+            "measured_recall": 0.9235,
+            "measured_p95_ms": 0.017305000801570714,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.1354549982352182,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 7.827506036458746,
+          "shortlist": [
+            "HNSW(M=32, efC=64, efS=128)",
+            "HNSW(M=32, efC=64, efS=256)",
+            "HNSW(M=32, efC=64, efS=512)",
+            "IVF-PQ(nlist=64, nprobe=1, M_pq=32)",
+            "IVF-PQ(nlist=256, nprobe=16, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "HNSW(M=32, efC=64, efS=128)",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.1354549982352182,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 7.827506036458746
+        },
+        {
+          "target": 0.95,
+          "oracle": {
+            "config_id": "HNSW(M=16, efC=64, efS=16)",
+            "measured_recall": 0.954,
+            "measured_p95_ms": 0.02511000129743479,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.681600001553306,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 27.1445625780568,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-PQ(nlist=64, nprobe=16, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=64, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.681600001553306,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 27.1445625780568
+        },
+        {
+          "target": 0.99,
+          "oracle": {
+            "config_id": "HNSW(M=8, efC=64, efS=64)",
+            "measured_recall": 0.9945,
+            "measured_p95_ms": 0.05271499467198736,
+            "meets_target": true
+          },
+          "direct_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.681600001553306,
+            "meets_target": true
+          },
+          "direct_meets_target": true,
+          "direct_latency_regret": 12.929907435151593,
+          "shortlist": [
+            "Flat-Exact",
+            "IVF-Flat(nlist=256, nprobe=256)",
+            "IVF-Flat(nlist=64, nprobe=64)",
+            "IVF-PQ(nlist=64, nprobe=16, M_pq=32)",
+            "IVF-PQ(nlist=64, nprobe=64, M_pq=32)"
+          ],
+          "shortlist_contains_oracle": false,
+          "shortlist_pick": {
+            "config_id": "Flat-Exact",
+            "measured_recall": 1.0,
+            "measured_p95_ms": 0.681600001553306,
+            "meets_target": true
+          },
+          "shortlist_latency_regret": 12.929907435151593
+        }
+      ]
+    }
+  },
+  "memory": {
+    "index_specific_estimate": {
+      "FLAT": {
+        "n": 5,
+        "mae": 4.291534423828125e-05,
+        "rmse": 4.291534423828125e-05,
+        "r2": 0.9999999999334073,
+        "median_abs_pct_error": 0.0004394511938179959,
+        "median_ratio_pred_over_true": 0.9999956054880618,
+        "median_error_factor": 1.00000439453125,
+        "within_25pct": 1.0,
+        "within_2x": 1.0,
+        "r2_log": 0.9999999998802755
+      },
+      "HNSW": {
+        "n": 20,
+        "mae": 0.0009620118617279516,
+        "rmse": 0.001104480381506465,
+        "r2": 0.9999999622600382,
+        "median_abs_pct_error": 0.006532324287334088,
+        "median_ratio_pred_over_true": 1.000045724094837,
+        "median_error_factor": 1.0000653232428733,
+        "within_25pct": 1.0,
+        "within_2x": 1.0,
+        "r2_log": 0.9999999363477621
+      },
+      "IVF_FLAT": {
+        "n": 15,
+        "mae": 0.00013256072998046875,
+        "rmse": 0.00013256072998046875,
+        "r2": 0.9999999993923938,
+        "median_abs_pct_error": 0.0013196295657402898,
+        "median_ratio_pred_over_true": 0.9999868037043426,
+        "median_error_factor": 1.000013196469802,
+        "within_25pct": 1.0,
+        "within_2x": 1.0,
+        "r2_log": 0.9999999989228361
+      },
+      "IVF_PQ": {
+        "n": 30,
+        "mae": 0.000171661376953125,
+        "rmse": 0.000171661376953125,
+        "r2": 0.9999995690698794,
+        "median_abs_pct_error": 0.023224216876715872,
+        "median_ratio_pred_over_true": 0.9997677578312328,
+        "median_error_factor": 1.0002322962094161,
+        "within_25pct": 1.0,
+        "within_2x": 1.0,
+        "r2_log": 0.9999993979293053
+      }
+    },
+    "synthetic_model": {
+      "FLAT": {
+        "n": 5,
+        "mae": 2.2847069815134247,
+        "rmse": 2.824970236737764,
+        "r2": 0.7114442927641733,
+        "median_abs_pct_error": 25.420898857208275,
+        "median_ratio_pred_over_true": 1.2542089885720829,
+        "median_error_factor": 1.2542089885720829,
+        "within_25pct": 0.4,
+        "within_2x": 1.0,
+        "r2_log": 0.8245761055190207
+      },
+      "HNSW": {
+        "n": 20,
+        "mae": 2.7305223026375183,
+        "rmse": 3.1966778860572704,
+        "r2": 0.6838572707538871,
+        "median_abs_pct_error": 18.791141604777124,
+        "median_ratio_pred_over_true": 1.0784887463520407,
+        "median_error_factor": 1.187911416047771,
+        "within_25pct": 0.65,
+        "within_2x": 1.0,
+        "r2_log": 0.7510366441556289
+      },
+      "IVF_FLAT": {
+        "n": 15,
+        "mae": 2.277890596620762,
+        "rmse": 2.629160041791174,
+        "r2": 0.7609842850723884,
+        "median_abs_pct_error": 22.875286108705133,
+        "median_ratio_pred_over_true": 1.2287528610870513,
+        "median_error_factor": 1.2287528610870513,
+        "within_25pct": 0.6666666666666666,
+        "within_2x": 1.0,
+        "r2_log": 0.8373427668819386
+      },
+      "IVF_PQ": {
+        "n": 30,
+        "mae": 0.2643383560553455,
+        "rmse": 0.32980289190497913,
+        "r2": -0.5906351897664026,
+        "median_abs_pct_error": 35.12723711235839,
+        "median_ratio_pred_over_true": 0.6487276288764161,
+        "median_error_factor": 1.5416942239846616,
+        "within_25pct": 0.26666666666666666,
+        "within_2x": 0.8333333333333334,
+        "r2_log": -1.0198022370367812
+      }
+    }
+  },
+  "undertrained": {
+    "rows_flagged_by_model": 30,
+    "rows_with_recorded_faiss_warnings": 30,
+    "flag_matches_recorded_warnings": true,
+    "measured_model_on_undertrained": {
+      "recall": {
+        "n": 30,
+        "mae": 0.11631200917308007,
+        "rmse": 0.15791833481656767,
+        "r2": 0.7705169640024085,
+        "median_abs_pct_error": 12.424090631456126
+      },
+      "p95": {
+        "n": 30,
+        "mae": 0.0259393508097513,
+        "rmse": 0.05104753285391716,
+        "r2": 0.7387065749283654,
+        "median_abs_pct_error": 27.336763678617544,
+        "median_ratio_pred_over_true": 1.0446598039951605,
+        "median_error_factor": 1.2855746101497418,
+        "within_25pct": 0.43333333333333335,
+        "within_2x": 1.0,
+        "r2_log": 0.8990039474436531
+      }
+    },
+    "measured_model_on_normal_ivf_flat": {
+      "recall": {
+        "n": 50,
+        "mae": 0.1115893169324195,
+        "rmse": 0.16118268189730814,
+        "r2": 0.71197631351546,
+        "median_abs_pct_error": 9.159435878823114
+      }
+    }
+  },
+  "feature_importances_all_data": {
+    "HNSW": {
+      "recall": {
+        "log2_search_cost": 0.477,
+        "intrinsic_ratio": 0.259,
+        "intrinsic_dimension": 0.119,
+        "log2_efSearch_over_k": 0.074,
+        "log2_efSearch": 0.05,
+        "dimension": 0.006,
+        "log2_dimension": 0.006,
+        "M": 0.006,
+        "log2_efConstruction": 0.002,
+        "log2_n": 0.001,
+        "log2_k": 0.0
+      },
+      "log_p95": {
+        "log2_search_cost": 0.746,
+        "log2_efSearch_over_k": 0.107,
+        "log2_efSearch": 0.096,
+        "intrinsic_dimension": 0.025,
+        "M": 0.01,
+        "intrinsic_ratio": 0.009,
+        "dimension": 0.002,
+        "log2_dimension": 0.002,
+        "log2_n": 0.001,
+        "log2_k": 0.0,
+        "log2_efConstruction": 0.0
+      },
+      "log_p50": {
+        "log2_search_cost": 0.636,
+        "log2_efSearch_over_k": 0.169,
+        "log2_efSearch": 0.155,
+        "intrinsic_dimension": 0.019,
+        "intrinsic_ratio": 0.008,
+        "M": 0.007,
+        "log2_dimension": 0.003,
+        "dimension": 0.002,
+        "log2_n": 0.001,
+        "log2_k": 0.0,
+        "log2_efConstruction": 0.0
+      }
+    },
+    "IVF_FLAT": {
+      "recall": {
+        "log2_scan_cost": 0.307,
+        "probe_fraction": 0.255,
+        "log2_nprobe": 0.199,
+        "intrinsic_ratio": 0.193,
+        "intrinsic_dimension": 0.021,
+        "dimension": 0.007,
+        "log2_points_per_list": 0.007,
+        "log2_dimension": 0.006,
+        "log2_nlist": 0.003,
+        "undertrained": 0.001,
+        "log2_n": 0.0,
+        "log2_k": 0.0
+      },
+      "log_p95": {
+        "log2_scan_cost": 0.98,
+        "probe_fraction": 0.007,
+        "log2_nprobe": 0.004,
+        "intrinsic_dimension": 0.002,
+        "intrinsic_ratio": 0.002,
+        "log2_points_per_list": 0.002,
+        "dimension": 0.001,
+        "log2_dimension": 0.001,
+        "log2_nlist": 0.001,
+        "log2_n": 0.0,
+        "log2_k": 0.0,
+        "undertrained": 0.0
+      },
+      "log_p50": {
+        "log2_scan_cost": 0.978,
+        "log2_nprobe": 0.008,
+        "probe_fraction": 0.008,
+        "intrinsic_ratio": 0.002,
+        "log2_points_per_list": 0.002,
+        "dimension": 0.001,
+        "log2_dimension": 0.001,
+        "intrinsic_dimension": 0.001,
+        "log2_nlist": 0.001,
+        "log2_n": 0.0,
+        "log2_k": 0.0,
+        "undertrained": 0.0
+      }
+    },
+    "IVF_PQ": {
+      "recall": {
+        "intrinsic_ratio": 0.321,
+        "intrinsic_dimension": 0.235,
+        "bits_per_dimension": 0.129,
+        "log2_scan_cost": 0.119,
+        "m_pq": 0.083,
+        "probe_fraction": 0.055,
+        "log2_nprobe": 0.042,
+        "dimension": 0.007,
+        "log2_dimension": 0.005,
+        "log2_points_per_list": 0.003,
+        "log2_n": 0.001,
+        "log2_nlist": 0.001,
+        "log2_k": 0.0,
+        "undertrained": 0.0
+      },
+      "log_p95": {
+        "log2_scan_cost": 0.679,
+        "probe_fraction": 0.203,
+        "log2_nprobe": 0.069,
+        "m_pq": 0.031,
+        "bits_per_dimension": 0.009,
+        "dimension": 0.002,
+        "intrinsic_dimension": 0.002,
+        "log2_points_per_list": 0.002,
+        "log2_dimension": 0.001,
+        "intrinsic_ratio": 0.001,
+        "log2_nlist": 0.001,
+        "log2_n": 0.0,
+        "log2_k": 0.0,
+        "undertrained": 0.0
+      },
+      "log_p50": {
+        "log2_scan_cost": 0.682,
+        "probe_fraction": 0.197,
+        "log2_nprobe": 0.076,
+        "m_pq": 0.029,
+        "bits_per_dimension": 0.008,
+        "log2_points_per_list": 0.002,
+        "dimension": 0.001,
+        "log2_dimension": 0.001,
+        "intrinsic_dimension": 0.001,
+        "intrinsic_ratio": 0.001,
+        "log2_nlist": 0.001,
+        "log2_n": 0.0,
+        "log2_k": 0.0,
+        "undertrained": 0.0
+      }
+    }
+  },
+  "data": "benchmarks\\results\\default-20261120T151201Z\\measurements.csv"
+}

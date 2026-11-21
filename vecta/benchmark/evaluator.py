@@ -81,7 +81,17 @@ class BenchmarkEvaluator:
         """Construct index, run queries with per-query timing, and compute performance metrics."""
         wrapper = FaissIndexWrapper(config, self.dimension, self.metric)
         build_time = wrapper.build_and_add(self.database)
-        
+        return self.measure_index(wrapper, build_time, warmup_runs=warmup_runs)
+
+    def measure_index(self, wrapper: FaissIndexWrapper, build_time: float, warmup_runs: int = 2,
+                      round_results: bool = True) -> BenchmarkResult:
+        """
+        Measure an index that is already built on this evaluator's database, using its *current*
+        search-time parameters (efSearch / nprobe). Lets callers build a structure once and measure
+        several runtime settings; `build_time` is reported as given (the shared build's time).
+        `round_results=False` keeps full precision (for recorded benchmark data); the default rounds
+        for display, as before.
+        """
         # Warmup
         for _ in range(warmup_runs):
             wrapper.search(self.queries[:min(5, len(self.queries))], k=self.k)
@@ -114,18 +124,19 @@ class BenchmarkEvaluator:
         qps = float(len(self.queries) / max(1e-6, total_query_time_s))
         
         speedup = self.gt_query_latency_ms / max(1e-4, mean_lat)
-        
+        rnd = (lambda x, digits: round(x, digits)) if round_results else (lambda x, digits: float(x))
+
         return BenchmarkResult(
             config=wrapper.config,  # effective configuration actually built by FAISS
-            recall_at_k=round(recall, 4),
-            latency_p50_ms=round(p50, 3),
-            latency_p95_ms=round(p95, 3),
-            latency_p99_ms=round(p99, 3),
-            latency_mean_ms=round(mean_lat, 3),
-            throughput_qps=round(qps, 1),
-            memory_footprint_mb=round(wrapper.estimated_memory_mb, 2),
-            index_build_time_s=round(build_time, 3),
-            speedup_vs_baseline=round(speedup, 2),
+            recall_at_k=rnd(recall, 4),
+            latency_p50_ms=rnd(p50, 3),
+            latency_p95_ms=rnd(p95, 3),
+            latency_p99_ms=rnd(p99, 3),
+            latency_mean_ms=rnd(mean_lat, 3),
+            throughput_qps=rnd(qps, 1),
+            memory_footprint_mb=rnd(wrapper.estimated_memory_mb, 2),
+            index_build_time_s=rnd(build_time, 3),
+            speedup_vs_baseline=rnd(speedup, 2),
             requested_config=wrapper.requested_config,
             config_adjustments=list(wrapper.config_adjustments),
             index_serialized_mb=float(wrapper.serialized_size_mb)
